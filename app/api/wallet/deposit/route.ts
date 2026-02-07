@@ -116,7 +116,6 @@ export async function POST(req: Request) {
       )
     }
 
-    const depositAmount = parseFloat(amount)
     const isConfirmed = status === 'confirmed'
 
     const transaction = await prisma.$transaction(async (tx) => {
