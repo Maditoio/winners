@@ -6,4 +6,3 @@ coverage
 __tests__
 .env.local
 .env.*.local
-node_modules/.prisma
