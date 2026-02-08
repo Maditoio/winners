@@ -51,7 +51,8 @@ export default function ProfilePage() {
   const [referralInfo, setReferralInfo] = useState<ReferralInfo | null>(null)
   const [qrCodeUrl, setQrCodeUrl] = useState('')
   const [isLoading, setIsLoading] = useState(true)
-  const [copied, setCopied] = useState(false)
+  const [copiedCrypto, setCopiedCrypto] = useState(false)
+  const [copiedReferral, setCopiedReferral] = useState(false)
   const [transactions, setTransactions] = useState<TransactionItem[]>([])
   const [txPage, setTxPage] = useState(1)
   const [txTotalPages, setTxTotalPages] = useState(1)
@@ -119,11 +120,16 @@ export default function ProfilePage() {
     }
   }
 
-  const copyToClipboard = async (text: string) => {
+  const copyToClipboard = async (text: string, type: 'crypto' | 'referral') => {
     try {
       await navigator.clipboard.writeText(text)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      if (type === 'crypto') {
+        setCopiedCrypto(true)
+        setTimeout(() => setCopiedCrypto(false), 2000)
+      } else {
+        setCopiedReferral(true)
+        setTimeout(() => setCopiedReferral(false), 2000)
+      }
     } catch (err) {
       console.error('Failed to copy:', err)
     }
@@ -199,10 +205,10 @@ export default function ProfilePage() {
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
                 />
                 <button
-                  onClick={() => copyToClipboard(profile.wallet.cryptoAddress)}
+                  onClick={() => copyToClipboard(profile.wallet.cryptoAddress, 'crypto')}
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
                 >
-                  {copied ? '✓' : 'Copy'}
+                  {copiedCrypto ? '✓' : 'Copy'}
                 </button>
               </div>
             </div>
@@ -267,10 +273,10 @@ export default function ProfilePage() {
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
                 />
                 <button
-                  onClick={() => copyToClipboard(referralInfo?.referralLink || '')}
+                  onClick={() => copyToClipboard(referralInfo?.referralLink || '', 'referral')}
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
                 >
-                  {copied ? '✓' : 'Copy'}
+                  {copiedReferral ? '✓' : 'Copy'}
                 </button>
               </div>
             </div>
@@ -322,7 +328,15 @@ export default function ProfilePage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-semibold text-gray-900">{parseFloat(tx.amount).toFixed(2)} USDT</div>
+                      <div className={`font-semibold ${
+                        tx.type === 'DEPOSIT' || tx.type === 'PRIZE_WIN' || tx.type === 'REFERRAL_BONUS'
+                          ? 'text-green-600'
+                          : tx.type === 'ENTRY_PURCHASE' || tx.type === 'WITHDRAWAL'
+                          ? 'text-red-600'
+                          : 'text-gray-900'
+                      }`}>
+                        {tx.type === 'DEPOSIT' || tx.type === 'PRIZE_WIN' || tx.type === 'REFERRAL_BONUS' ? '+' : '-'}{parseFloat(tx.amount).toFixed(2)} USDT
+                      </div>
                       <div className={`text-xs font-semibold ${
                         tx.status === 'COMPLETED'
                           ? 'text-green-600'

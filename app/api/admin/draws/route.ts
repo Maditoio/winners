@@ -28,13 +28,20 @@ export async function GET() {
       draws.map((draw: any) => ({
         id: draw.id,
         title: draw.title,
+        description: draw.description,
         status: draw.status,
         startDate: draw.startDate.toISOString(),
         endDate: draw.endDate.toISOString(),
         drawDate: draw.drawDate.toISOString(),
         entryPrice: draw.entryPrice.toString(),
+        maxEntries: draw.maxEntries,
         currentEntries: draw._count.entries,
         winnersCount: draw._count.winners,
+        prizes: draw.prizes.map((prize: any) => ({
+          position: prize.position,
+          name: prize.name,
+          prizeAmount: prize.prizeAmount ? prize.prizeAmount.toString() : null
+        })),
         prizeCount: draw.prizes.length,
         isReadyToDraw: now >= draw.drawDate && draw.status !== 'DRAWING' && draw.status !== 'COMPLETED'
       }))
