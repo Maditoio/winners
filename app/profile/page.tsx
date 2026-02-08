@@ -329,13 +329,13 @@ export default function ProfilePage() {
                     </div>
                     <div className="text-right">
                       <div className={`font-semibold ${
-                        tx.type === 'DEPOSIT' || tx.type === 'PRIZE_WIN' || tx.type === 'REFERRAL_BONUS' || tx.type === 'REFUND'
+                        tx.type === 'DEPOSIT' || tx.type === 'PRIZE_WIN' || tx.type === 'REFERRAL_BONUS'
                           ? 'text-green-600'
                           : tx.type === 'ENTRY_PURCHASE' || tx.type === 'WITHDRAWAL'
                           ? 'text-red-600'
                           : 'text-gray-900'
                       }`}>
-                        {tx.type === 'DEPOSIT' || tx.type === 'PRIZE_WIN' || tx.type === 'REFERRAL_BONUS' || tx.type === 'REFUND' ? '+' : '-'}{parseFloat(tx.amount).toFixed(2)} USDT
+                        {tx.type === 'DEPOSIT' || tx.type === 'PRIZE_WIN' || tx.type === 'REFERRAL_BONUS' ? '+' : '-'}{parseFloat(tx.amount).toFixed(2)} USDT
                       </div>
                       <div className={`text-xs font-semibold ${
                         tx.status === 'COMPLETED'

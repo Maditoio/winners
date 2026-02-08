@@ -191,7 +191,6 @@ enum TransactionType {
   ENTRY_PURCHASE
   PRIZE_WIN
   REFERRAL_BONUS
-  REFUND
 }
 
 enum TransactionStatus {

@@ -184,11 +184,11 @@ export async function DELETE(
           }
         })
 
-        // Create refund transaction record
+        // Create refund transaction record with DEPOSIT type (REFUND enum will be added later)
         await prisma.transaction.create({
           data: {
             userId,
-            type: 'REFUND',
+            type: 'DEPOSIT',
             amount: refundAmount,
             status: 'COMPLETED',
             description: `Refund for deleted draw: ${draw.title}`
