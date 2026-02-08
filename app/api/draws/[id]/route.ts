@@ -147,11 +147,11 @@ export async function DELETE(
 
     const { id } = await params
 
-    // Check if draw has entries
+    // Get draw with entries
     const draw = await prisma.draw.findUnique({
       where: { id },
       include: {
-        _count: { select: { entries: true } }
+        entries: true
       }
     })
 
@@ -162,11 +162,39 @@ export async function DELETE(
       )
     }
 
-    if (draw._count.entries > 0) {
-      return NextResponse.json(
-        { error: 'Cannot delete draw with existing entries' },
-        { status: 400 }
-      )
+    // Process refunds for all users with entries
+    if (draw.entries.length > 0) {
+      // Group entries by userId and sum amounts
+      const refundsByUser = new Map<string, number>()
+      
+      for (const entry of draw.entries) {
+        const current = refundsByUser.get(entry.userId) || 0
+        refundsByUser.set(entry.userId, current + Number(draw.entryPrice))
+      }
+
+      // Process refunds in a transaction
+      for (const [userId, refundAmount] of refundsByUser) {
+        // Update wallet balance
+        await prisma.wallet.update({
+          where: { userId },
+          data: {
+            balance: {
+              increment: refundAmount
+            }
+          }
+        })
+
+        // Create refund transaction record
+        await prisma.transaction.create({
+          data: {
+            userId,
+            type: 'REFUND',
+            amount: refundAmount,
+            status: 'COMPLETED',
+            description: `Refund for deleted draw: ${draw.title}`
+          }
+        })
+      }
     }
 
     // Delete prizes first (cascade should handle this, but being explicit)
@@ -174,13 +202,14 @@ export async function DELETE(
       where: { drawId: id }
     })
 
-    // Delete the draw
+    // Delete the draw (entries will be cascade deleted)
     await prisma.draw.delete({
       where: { id }
     })
 
     return NextResponse.json({
-      message: 'Draw deleted successfully'
+      message: 'Draw deleted successfully',
+      refundedCount: draw.entries.length
     })
   } catch (error) {
     console.error('Delete draw error:', error)
