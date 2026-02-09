@@ -88,8 +88,8 @@ export default function DrawCard({ draw, onEnter, lastTickets }: DrawCardProps) 
   return (
     <Link href={`/draws/${draw.id}`} className="block h-full">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow h-full cursor-pointer">
-        {draw.firstPrizeImage && (
-          <div className="relative h-40 bg-gray-200">
+        <div className="relative h-40 bg-gradient-to-br from-purple-100 to-blue-100">
+          {draw.firstPrizeImage ? (
             <Image
               src={draw.firstPrizeImage}
               alt={draw.title}
@@ -99,8 +99,15 @@ export default function DrawCard({ draw, onEnter, lastTickets }: DrawCardProps) 
               quality={65}
               priority={false}
             />
-          </div>
-        )}
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <div className="text-5xl mb-2">🎁</div>
+                <div className="text-sm font-bold text-gray-600">Prize Draw</div>
+              </div>
+            </div>
+          )}
+        </div>
         
         <div className="p-6">
           <h3 className="text-xl font-bold text-gray-900 mb-2">{draw.title}</h3>

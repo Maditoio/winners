@@ -153,9 +153,9 @@ export default function DrawDetailPage() {
       </button>
 
       {/* Promotion Image */}
-      {draw.firstPrizeImage && (
-        <div className="mb-8">
-          <div className="relative w-full h-64 md:h-96 bg-gray-200 rounded-lg overflow-hidden">
+      <div className="mb-8">
+        <div className="relative w-full h-64 md:h-96 bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg overflow-hidden shadow-md">
+          {draw.firstPrizeImage ? (
             <Image
               src={draw.firstPrizeImage}
               alt={draw.title}
@@ -165,15 +165,22 @@ export default function DrawDetailPage() {
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 75vw, 1200px"
               quality={75}
             />
-          </div>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <div className="text-6xl mb-4">🎁</div>
+                <div className="text-xl font-bold text-gray-700">{draw.title}</div>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       <div className="grid md:grid-cols-3 gap-8">
         {/* Main Content */}
-        <div className="md:col-span-2 space-y-8">
+        <div className="md:col-span-2 space-y-6">
           {/* Title and Description */}
-          <div>
+          <div className="bg-white rounded-lg shadow-md p-6">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">{draw.title}</h1>
             {draw.description && (
               <p className="text-lg text-gray-700 mb-4">{draw.description}</p>
@@ -190,16 +197,16 @@ export default function DrawDetailPage() {
           </div>
 
           {/* Draw Information */}
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Draw Information</h2>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">📅 Draw Information</h2>
             <div className="grid sm:grid-cols-2 gap-4">
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-100">
                 <div className="text-sm text-gray-600 mb-1">Draw Date</div>
                 <div className="font-semibold text-gray-900">
                   {new Date(draw.drawDate).toLocaleDateString()} {new Date(draw.drawDate).toLocaleTimeString()}
                 </div>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-100">
                 <div className="text-sm text-gray-600 mb-1">Entry Price</div>
                 <div className="font-semibold text-purple-600 text-lg">{draw.entryPrice} USDT</div>
               </div>
@@ -207,9 +214,9 @@ export default function DrawDetailPage() {
           </div>
 
           {/* Participation */}
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Participation</h2>
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">👥 Participation</h2>
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-lg p-6">
               <div className="mb-4">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-gray-600">Current Participants</span>
@@ -239,14 +246,14 @@ export default function DrawDetailPage() {
           </div>
 
           {/* Prizes Section */}
-          <div>
+          <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">🏆 Prizes</h2>
             <div className="grid gap-4">
               {draw.prizes.map((prize) => (
-                <div key={prize.position} className="bg-white border border-gray-200 rounded-lg p-4 md:p-6">
+                <div key={prize.position} className="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-lg p-4 md:p-6 hover:shadow-lg transition-shadow">
                   <div className="grid md:grid-cols-3 gap-4 items-start">
-                    {prize.imageUrl && (
-                      <div className="relative h-32 md:h-40 bg-gray-100 rounded-lg overflow-hidden">
+                    <div className="relative h-32 md:h-40 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-lg overflow-hidden border-2 border-yellow-200">
+                      {prize.imageUrl ? (
                         <Image
                           src={prize.imageUrl}
                           alt={prize.name}
@@ -255,9 +262,16 @@ export default function DrawDetailPage() {
                           sizes="(max-width: 768px) 100vw, 33vw"
                           quality={70}
                         />
-                      </div>
-                    )}
-                    <div className={prize.imageUrl ? 'md:col-span-2' : 'md:col-span-3'}>
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <div className="text-center">
+                            <div className="text-4xl mb-2">🏆</div>
+                            <div className="text-xs font-bold text-yellow-700">#{prize.position}</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="md:col-span-2">
                       <div className="flex items-center gap-3 mb-2">
                         <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 text-white px-3 py-1 rounded-full text-sm font-bold">
                           #{prize.position}
@@ -280,9 +294,9 @@ export default function DrawDetailPage() {
           </div>
 
           {/* Participation Rules */}
-          <div>
+          <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">📋 Participation Rules</h2>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 space-y-3">
+            <div className="bg-gradient-to-br from-yellow-50 to-amber-50 border-2 border-yellow-200 rounded-lg p-6 space-y-3">
               <div className="flex gap-3">
                 <span className="text-2xl">✓</span>
                 <div>
