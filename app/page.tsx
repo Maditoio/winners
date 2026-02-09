@@ -1,6 +1,11 @@
+'use client'
+
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 
 export default function Home() {
+  const { data: session } = useSession()
+
   return (
     <div className="min-h-[calc(100vh-4rem)]">
       {/* Hero Section */}
@@ -13,20 +18,29 @@ export default function Home() {
             <p className="text-lg md:text-xl mb-6 md:mb-8 text-white/90">
               Enter draws with USDT, win amazing prizes, and refer friends to earn bonuses
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-              <Link
-                href="/auth/signup"
-                className="bg-white text-purple-600 hover:bg-gray-100 px-6 md:px-8 py-2 md:py-3 rounded-lg font-semibold text-base md:text-lg transition-colors"
-              >
-                Get Started
-              </Link>
+            {session ? (
               <Link
                 href="/draws"
-                className="bg-white/20 hover:bg-white/30 text-white px-6 md:px-8 py-2 md:py-3 rounded-lg font-semibold text-base md:text-lg transition-colors"
+                className="bg-white text-purple-600 hover:bg-gray-100 px-6 md:px-8 py-2 md:py-3 rounded-lg font-semibold text-base md:text-lg transition-colors inline-block"
               >
-                View Draws
+                Go to Draws
               </Link>
-            </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+                <Link
+                  href="/auth/signup"
+                  className="bg-white text-purple-600 hover:bg-gray-100 px-6 md:px-8 py-2 md:py-3 rounded-lg font-semibold text-base md:text-lg transition-colors"
+                >
+                  Get Started
+                </Link>
+                <Link
+                  href="/draws"
+                  className="bg-white/20 hover:bg-white/30 text-white px-6 md:px-8 py-2 md:py-3 rounded-lg font-semibold text-base md:text-lg transition-colors"
+                >
+                  View Draws
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>

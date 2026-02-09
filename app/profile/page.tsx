@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import QRCode from 'qrcode'
 
@@ -179,7 +179,8 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="bg-gray-50 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">My Profile</h1>
 
       <div className="grid lg:grid-cols-2 gap-6">
@@ -402,6 +403,24 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="mt-8 md:hidden">
+        <button
+          onClick={() => signOut({ callbackUrl: '/' })}
+          className="w-full px-4 py-3 bg-gray-900 text-white rounded-lg font-semibold"
+        >
+          Log Out
+        </button>
+      </div>
+      <div className="mt-8 hidden md:block">
+        <button
+          onClick={() => signOut({ callbackUrl: '/' })}
+          className="px-6 py-3 bg-gray-900 text-white rounded-lg font-semibold"
+        >
+          Log Out
+        </button>
+      </div>
       </div>
     </div>
   )
