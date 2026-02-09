@@ -183,6 +183,34 @@ export default function DrawsAdminPage() {
     }
   }
 
+  const handleExecuteDraw = async (drawId: string, numberOfWinners: number = 10) => {
+    if (!confirm(`Execute draw and select ${numberOfWinners} winners? This cannot be undone.`)) return
+    
+    setError('')
+    setSuccess('')
+    setIsLoading(true)
+    
+    try {
+      const res = await fetch('/api/admin/draws/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ drawId, numberOfWinners })
+      })
+      const data = await res.json()
+      
+      if (!res.ok) {
+        setError(data.error || 'Failed to execute draw')
+      } else {
+        setSuccess(`Draw executed! ${data.totalWinners} winners selected.`)
+        fetchDraws()
+      }
+    } catch (err) {
+      setError('Failed to execute draw')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleEdit = (draw: Draw) => {
     setEditingDraw(draw.id)
     setFormData({
@@ -554,6 +582,15 @@ export default function DrawsAdminPage() {
                   </div>
                   
                   <div className="flex flex-col gap-2 ml-4">
+                    {draw.status !== 'COMPLETED' && (
+                      <button
+                        onClick={() => handleExecuteDraw(draw.id)}
+                        disabled={isLoading}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm disabled:opacity-50"
+                      >
+                        Execute Draw
+                      </button>
+                    )}
                     <button
                       onClick={() => handleEdit(draw)}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
