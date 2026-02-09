@@ -60,7 +60,7 @@ export default function DrawDetailPage() {
 
   const fetchDraw = async () => {
     try {
-      const res = await fetch(`/api/draws/${drawId}/draw`)
+      const res = await fetch(`/api/draws/${drawId}`)
       if (!res.ok) throw new Error('Failed to fetch draw')
       const data = await res.json()
       setDraw(data)
