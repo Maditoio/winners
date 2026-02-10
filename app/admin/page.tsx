@@ -45,6 +45,16 @@ export default function AdminPage() {
           </div>
         </Link>
 
+        {/* User Management Card */}
+        <Link href="/admin/users">
+          <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer">
+            <div className="text-3xl mb-3">👥</div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">User Management</h2>
+            <p className="text-gray-600 text-sm mb-4">Manage users and reset passwords</p>
+            <div className="text-purple-600 font-medium text-sm">Manage Users →</div>
+          </div>
+        </Link>
+
         {/* Financial Reports Card */}
         <Link href="/admin/reports">
           <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer">
