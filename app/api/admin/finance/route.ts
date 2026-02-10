@@ -72,11 +72,13 @@ export async function GET(req: Request) {
       0
     )
 
-    // Get deposit transactions
+    // Get deposit transactions - EXCLUDE refunds from rejected withdrawals or cancelled draws
+    // Only count deposits from external crypto transfers (should have txHash)
     const deposits = await prisma.transaction.findMany({
       where: {
         type: 'DEPOSIT',
         status: 'COMPLETED',
+        txHash: { not: null }, // Only real crypto deposits have transaction hashes
         ...(Object.keys(dateFilter).length > 0 && {
           createdAt: dateFilter
         })
@@ -86,7 +88,8 @@ export async function GET(req: Request) {
         amount: true,
         status: true,
         createdAt: true,
-        userId: true
+        userId: true,
+        txHash: true
       },
       orderBy: { createdAt: 'desc' }
     })
