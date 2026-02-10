@@ -75,6 +75,13 @@ export default function DrawsAdminPage() {
 
   const handleFirstPrizeImageFile = (file: File | null) => {
     if (!file) return
+    
+    // Check file size (1MB max)
+    if (file.size > 1024 * 1024) {
+      setError('First prize image must be less than 1MB')
+      return
+    }
+    
     const reader = new FileReader()
     reader.onload = () => {
       setFormData({ ...formData, firstPrizeImage: String(reader.result || '') })
@@ -84,6 +91,13 @@ export default function DrawsAdminPage() {
 
   const handlePrizeImageFile = (index: number, file: File | null) => {
     if (!file) return
+    
+    // Check file size (1MB max)
+    if (file.size > 1024 * 1024) {
+      setError(`Prize image must be less than 1MB`)
+      return
+    }
+    
     const reader = new FileReader()
     reader.onload = () => {
       updatePrize(index, 'imageUrl', String(reader.result || ''))
@@ -124,7 +138,9 @@ export default function DrawsAdminPage() {
         body: JSON.stringify({
           ...formData,
           maxEntries: formData.maxEntries ? parseInt(formData.maxEntries) : null,
-          prizes: prizes.filter(p => p.name.trim() !== '')
+          prizes: prizes
+            .filter(p => p.name.trim() !== '')
+            .map((p, index) => ({ ...p, position: index + 1 }))
         }),
       })
 
