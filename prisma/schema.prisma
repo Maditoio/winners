@@ -31,6 +31,7 @@ model User {
   
   entries       Entry[]
   transactions  Transaction[]
+  withdrawalRequests WithdrawalRequest[]
 
   @@index([referredBy])
 }
@@ -97,6 +98,7 @@ model Transaction {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
+  withdrawalRequest WithdrawalRequest?
   user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -179,10 +181,39 @@ model Winner {
   @@index([drawId])
   @@index([userId])
 }
+model WithdrawalRequest {
+  id              String              @id @default(cuid())
+  userId          String
+  amount          Decimal             @db.Decimal(18, 8)
+  fee             Decimal             @db.Decimal(18, 8)
+  netAmount       Decimal             @db.Decimal(18, 8)
+  cryptoAddress   String
+  status          WithdrawalStatus    @default(PENDING)
+  transactionId   String?             @unique
+  requestedAt     DateTime            @default(now())
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  adminNotes      String?             @db.Text
+  
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transaction     Transaction?        @relation(fields: [transactionId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([requestedAt])
+}
+
 
 enum UserRole {
   USER
   ADMIN
+}
+
+enum WithdrawalStatus {
+  PENDING
+  UNDER_REVIEW
+  COMPLETED
+  REJECTED
 }
 
 enum TransactionType {

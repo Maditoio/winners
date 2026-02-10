@@ -34,7 +34,7 @@ export default function AdminPage() {
       <h1 className="text-4xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
       <p className="text-gray-600 mb-12">Manage your draw platform</p>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
         {/* Draw Management Card */}
         <Link href="/admin/draws">
           <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer">
@@ -52,6 +52,16 @@ export default function AdminPage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-2">User Management</h2>
             <p className="text-gray-600 text-sm mb-4">Manage users and reset passwords</p>
             <div className="text-purple-600 font-medium text-sm">Manage Users →</div>
+          </div>
+        </Link>
+
+        {/* Withdrawal Management Card */}
+        <Link href="/admin/withdrawals">
+          <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer">
+            <div className="text-3xl mb-3">💸</div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Withdrawals</h2>
+            <p className="text-gray-600 text-sm mb-4">Review and process withdrawal requests</p>
+            <div className="text-purple-600 font-medium text-sm">Manage Withdrawals →</div>
           </div>
         </Link>
 

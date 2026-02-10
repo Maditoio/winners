@@ -62,6 +62,16 @@ export default function Navbar() {
                     Tickets
                   </Link>
                   <Link
+                    href="/withdraw"
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${
+                      pathname === '/withdraw'
+                        ? 'bg-white/20 text-white'
+                        : 'text-white/80 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    Withdraw
+                  </Link>
+                  <Link
                     href="/profile"
                     className={`px-3 py-2 rounded-md text-sm font-medium ${
                       pathname === '/profile'
@@ -154,6 +164,17 @@ export default function Navbar() {
             >
               <span className="text-xl">📋</span>
               <span className="text-xs font-medium mt-1">History</span>
+            </Link>
+            <Link
+              href="/withdraw"
+              className={`flex flex-col items-center justify-center w-full h-full ${
+                pathname === '/withdraw'
+                  ? 'bg-white/20 text-white'
+                  : 'text-white/80'
+              }`}
+            >
+              <span className="text-xl">💸</span>
+              <span className="text-xs font-medium mt-1">Withdraw</span>
             </Link>
             <Link
               href="/profile"
