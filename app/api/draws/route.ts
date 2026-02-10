@@ -28,7 +28,8 @@ export async function GET() {
         entryPrice: draw.entryPrice.toString(),
         currentEntries: draw._count.entries,
         isOpen:
-          now <= new Date(draw.endDate) &&
+          now >= new Date(draw.createdAt) &&
+          now < new Date(draw.drawDate) &&
           draw.status !== 'COMPLETED' &&
           draw.status !== 'DRAWING',
         prizes: draw.prizes.map((prize: any) => ({
@@ -57,7 +58,7 @@ export async function POST(req: Request) {
       )
     }
 
-    const { title, description, entryPrice, maxEntries, startDate, endDate, drawDate, firstPrizeImage, prizes } = await req.json()
+    const { title, description, entryPrice, maxEntries, drawDate, firstPrizeImage, prizes } = await req.json()
 
     const draw = await prisma.draw.create({
       data: {
@@ -65,8 +66,6 @@ export async function POST(req: Request) {
         description,
         entryPrice: parseFloat(entryPrice),
         maxEntries,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
         drawDate: new Date(drawDate),
         firstPrizeImage,
         prizes: {

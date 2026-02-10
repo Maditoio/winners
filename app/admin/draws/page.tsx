@@ -21,9 +21,8 @@ interface Draw {
   maxEntries?: number
   currentEntries: number
   status: string
-  startDate: string
-  endDate: string
   drawDate: string
+  createdAt: string
   firstPrizeImage?: string
   prizes: Prize[]
 }
@@ -42,8 +41,6 @@ export default function DrawsAdminPage() {
     description: '',
     entryPrice: '',
     maxEntries: '',
-    startDate: '',
-    endDate: '',
     drawDate: '',
     firstPrizeImage: '',
   })
@@ -142,8 +139,6 @@ export default function DrawsAdminPage() {
           description: '',
           entryPrice: '',
           maxEntries: '',
-          startDate: '',
-          endDate: '',
           drawDate: '',
           firstPrizeImage: '',
         })
@@ -218,8 +213,6 @@ export default function DrawsAdminPage() {
       description: draw.description || '',
       entryPrice: draw.entryPrice,
       maxEntries: draw.maxEntries?.toString() || '',
-      startDate: new Date(draw.startDate).toISOString().slice(0, 16),
-      endDate: new Date(draw.endDate).toISOString().slice(0, 16),
       drawDate: new Date(draw.drawDate).toISOString().slice(0, 16),
       firstPrizeImage: draw.firstPrizeImage || '',
     })
@@ -237,8 +230,6 @@ export default function DrawsAdminPage() {
       description: '',
       entryPrice: '',
       maxEntries: '',
-      startDate: '',
-      endDate: '',
       drawDate: '',
       firstPrizeImage: '',
     })
@@ -368,34 +359,10 @@ export default function DrawsAdminPage() {
           </div>
         </div>
 
-        {/* Dates */}
+        {/* Draw Date */}
         <div>
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Schedule</h2>
-          <div className="grid md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                Start Date *
-              </label>
-              <input
-                type="datetime-local"
-                required
-                value={formData.startDate}
-                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-purple-500 focus:border-purple-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                End Date *
-              </label>
-              <input
-                type="datetime-local"
-                required
-                value={formData.endDate}
-                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-purple-500 focus:border-purple-500"
-              />
-            </div>
+          <div className="grid md:grid-cols-1 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-900 mb-2">
                 Draw Date *
@@ -407,6 +374,7 @@ export default function DrawsAdminPage() {
                 onChange={(e) => setFormData({ ...formData, drawDate: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-purple-500 focus:border-purple-500"
               />
+              <p className="text-xs text-gray-600 mt-1">When the draw will take place. Participants can enter immediately after creation until this date.</p>
             </div>
           </div>
         </div>

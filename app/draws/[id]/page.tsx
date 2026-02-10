@@ -14,9 +14,8 @@ interface Draw {
   maxEntries?: number
   currentEntries: number
   status: string
-  startDate: string
-  endDate: string
   drawDate: string
+  createdAt: string
   firstPrizeImage?: string
   prizes: Array<{
     position: number
@@ -136,10 +135,10 @@ export default function DrawDetailPage() {
   }
 
   const now = new Date()
-  const startDate = new Date(draw.startDate)
-  const endDate = new Date(draw.endDate)
-  // Draw is open for participation as soon as startDate is reached, regardless of status
-  const isOpen = now >= startDate && now < endDate
+  const createdAt = new Date(draw.createdAt)
+  const drawDate = new Date(draw.drawDate)
+  // Draw is open for participation as soon as it's created until the draw date
+  const isOpen = now >= createdAt && now < drawDate && draw.status !== 'COMPLETED' && draw.status !== 'DRAWING'
   const remainingEntries = draw.maxEntries ? draw.maxEntries - draw.currentEntries : null
   const participationPercentage = draw.maxEntries ? (draw.currentEntries / draw.maxEntries) * 100 : 0
 
@@ -404,7 +403,7 @@ export default function DrawDetailPage() {
             ) : (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <p className="text-sm text-yellow-800 font-semibold">
-                  This draw is not currently open for participation. Please check the start and end dates.
+                  This draw is not currently accepting entries. The draw has either already taken place or is no longer active.
                 </p>
               </div>
             )}

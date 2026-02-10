@@ -14,9 +14,8 @@ interface Draw {
   maxEntries?: number
   currentEntries: number
   status: string
-  startDate: string
-  endDate: string
   drawDate: string
+  createdAt: string
   firstPrizeImage?: string
   isOpen?: boolean
   prizes: Array<{

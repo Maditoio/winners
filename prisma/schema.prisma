@@ -122,8 +122,6 @@ model Draw {
   maxEntries      Int?
   currentEntries  Int        @default(0)
   status          DrawStatus @default(UPCOMING)
-  startDate       DateTime
-  endDate         DateTime
   drawDate        DateTime
   firstPrizeImage String?
   createdAt       DateTime   @default(now())

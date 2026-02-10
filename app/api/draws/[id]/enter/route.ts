@@ -46,7 +46,7 @@ export async function POST(
     }
 
     const now = new Date()
-    if (now > draw.endDate) {
+    if (now > draw.drawDate) {
       return NextResponse.json(
         { error: 'Draw entry window has closed' },
         { status: 400 }

@@ -13,9 +13,8 @@ interface Draw {
   maxEntries?: number
   currentEntries: number
   status: string
-  startDate: string
-  endDate: string
   drawDate: string
+  createdAt: string
   firstPrizeImage?: string
   isOpen?: boolean
   prizes: Array<{
@@ -172,7 +171,7 @@ export default function DrawCard({ draw, onEnter, lastTickets }: DrawCardProps) 
           {!isOpen && (
             <div className="text-center py-2 text-gray-500 text-sm">
               {draw.status === 'UPCOMING' && (
-                <>Pre-sale closed • Starts on {new Date(draw.startDate).toLocaleString()}</>
+                <>Participation closed • Draw on {new Date(draw.drawDate).toLocaleString()}</>
               )}
               {draw.status === 'COMPLETED' && 'Draw Completed'}
               {draw.status === 'DRAWING' && 'Drawing in Progress'}

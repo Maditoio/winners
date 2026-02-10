@@ -35,7 +35,8 @@ export async function GET(
       entryPrice: draw.entryPrice.toString(),
       currentEntries: draw._count.entries,
       isOpen:
-        now <= new Date(draw.endDate) &&
+        now >= new Date(draw.createdAt) &&
+        now < new Date(draw.drawDate) &&
         draw.status !== 'COMPLETED' &&
         draw.status !== 'DRAWING',
       prizes: draw.prizes.map((prize: any) => ({
@@ -72,8 +73,6 @@ export async function PUT(
     const {
       title,
       description,
-      startDate,
-      endDate,
       drawDate,
       entryPrice,
       maxEntries,
@@ -92,8 +91,6 @@ export async function PUT(
       data: {
         title,
         description,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
         drawDate: new Date(drawDate),
         entryPrice: parseFloat(entryPrice),
         maxEntries: maxEntries ? parseInt(maxEntries) : null,
