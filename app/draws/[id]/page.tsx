@@ -138,7 +138,8 @@ export default function DrawDetailPage() {
   const now = new Date()
   const startDate = new Date(draw.startDate)
   const endDate = new Date(draw.endDate)
-  const isOpen = (draw.status === 'UPCOMING' || draw.status === 'ACTIVE') && now >= startDate && now < endDate
+  // Draw is open for participation as soon as startDate is reached, regardless of status
+  const isOpen = now >= startDate && now < endDate
   const remainingEntries = draw.maxEntries ? draw.maxEntries - draw.currentEntries : null
   const participationPercentage = draw.maxEntries ? (draw.currentEntries / draw.maxEntries) * 100 : 0
 
@@ -154,7 +155,7 @@ export default function DrawDetailPage() {
 
       {/* Promotion Image */}
       <div className="mb-8">
-        <div className="relative w-full h-64 md:h-96 bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg overflow-hidden shadow-md">
+        <div className="relative w-full h-64 md:h-96 bg-linear-to-br from-purple-100 to-blue-100 rounded-lg overflow-hidden shadow-md">
           {draw.firstPrizeImage ? (
             <Image
               src={draw.firstPrizeImage}
@@ -200,13 +201,13 @@ export default function DrawDetailPage() {
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">📅 Draw Information</h2>
             <div className="grid sm:grid-cols-2 gap-4">
-              <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-100">
+              <div className="bg-linear-to-br from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-100">
                 <div className="text-sm text-gray-600 mb-1">Draw Date</div>
                 <div className="font-semibold text-gray-900">
                   {new Date(draw.drawDate).toLocaleDateString()} {new Date(draw.drawDate).toLocaleTimeString()}
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-100">
+              <div className="bg-linear-to-br from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-100">
                 <div className="text-sm text-gray-600 mb-1">Entry Price</div>
                 <div className="font-semibold text-purple-600 text-lg">{draw.entryPrice} USDT</div>
               </div>
@@ -216,7 +217,7 @@ export default function DrawDetailPage() {
           {/* Participation */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">👥 Participation</h2>
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-lg p-6">
+            <div className="bg-linear-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-lg p-6">
               <div className="mb-4">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-gray-600">Current Participants</span>
@@ -250,9 +251,9 @@ export default function DrawDetailPage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">🏆 Prizes</h2>
             <div className="grid gap-4">
               {draw.prizes.map((prize) => (
-                <div key={prize.position} className="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-lg p-4 md:p-6 hover:shadow-lg transition-shadow">
+                <div key={prize.position} className="bg-linear-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-lg p-4 md:p-6 hover:shadow-lg transition-shadow">
                   <div className="grid md:grid-cols-3 gap-4 items-start">
-                    <div className="relative h-32 md:h-40 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-lg overflow-hidden border-2 border-yellow-200">
+                    <div className="relative h-32 md:h-40 bg-linear-to-br from-yellow-100 to-orange-100 rounded-lg overflow-hidden border-2 border-yellow-200">
                       {prize.imageUrl ? (
                         <Image
                           src={prize.imageUrl}
@@ -273,7 +274,7 @@ export default function DrawDetailPage() {
                     </div>
                     <div className="md:col-span-2">
                       <div className="flex items-center gap-3 mb-2">
-                        <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+                        <div className="bg-linear-to-br from-yellow-400 to-yellow-600 text-white px-3 py-1 rounded-full text-sm font-bold">
                           #{prize.position}
                         </div>
                         <h3 className="text-xl font-bold text-gray-900">{prize.name}</h3>
@@ -296,7 +297,7 @@ export default function DrawDetailPage() {
           {/* Participation Rules */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">📋 Participation Rules</h2>
-            <div className="bg-gradient-to-br from-yellow-50 to-amber-50 border-2 border-yellow-200 rounded-lg p-6 space-y-3">
+            <div className="bg-linear-to-br from-yellow-50 to-amber-50 border-2 border-yellow-200 rounded-lg p-6 space-y-3">
               <div className="flex gap-3">
                 <span className="text-2xl">✓</span>
                 <div>
@@ -383,7 +384,7 @@ export default function DrawDetailPage() {
                 <button
                   onClick={handleEnter}
                   disabled={isEntering}
-                  className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 disabled:opacity-50"
+                  className="w-full px-4 py-3 bg-linear-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 disabled:opacity-50"
                 >
                   {isEntering ? 'Purchasing...' : 'Buy Entries'}
                 </button>
@@ -403,7 +404,7 @@ export default function DrawDetailPage() {
             ) : (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <p className="text-sm text-yellow-800 font-semibold">
-                  This draw is not yet open for participation. Please check back on the start date.
+                  This draw is not currently open for participation. Please check the start and end dates.
                 </p>
               </div>
             )}
