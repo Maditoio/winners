@@ -8,6 +8,7 @@ interface Profile {
   wallet: {
     balance: string
     cryptoAddress: string
+    withdrawalAddress?: string
   }
 }
 
@@ -56,7 +57,8 @@ export default function WithdrawalPage() {
       if (!res.ok) throw new Error('Failed to fetch profile')
       const data = await res.json()
       setProfile(data)
-      setCryptoAddress(data.wallet.cryptoAddress)
+      // Use withdrawal address if set, otherwise use deposit address as fallback
+      setCryptoAddress(data.wallet.withdrawalAddress || data.wallet.cryptoAddress)
     } catch (err) {
       console.error(err)
     } finally {
@@ -71,7 +73,7 @@ export default function WithdrawalPage() {
         const data = await res.json()
         setWithdrawalRequests(data)
       }
-    } catch (err) {
+    } catch {
       console.error('Failed to fetch withdrawal requests')
     }
   }
@@ -149,7 +151,7 @@ export default function WithdrawalPage() {
         await fetchProfile()
         await fetchWithdrawalRequests()
       }
-    } catch (err) {
+    } catch {
       setMessageType('error')
       setMessage('An error occurred. Please try again.')
     } finally {
@@ -205,7 +207,7 @@ export default function WithdrawalPage() {
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">💸 New Withdrawal Request</h2>
             
-            <div className="bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 mb-4">
+            <div className="bg-linear-to-br from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 mb-4">
               <div className="text-sm text-gray-600 mb-1">Available Balance</div>
               <div className="text-2xl font-bold text-purple-600">
                 {parseFloat(profile.wallet.balance).toFixed(2)} USDT
@@ -233,17 +235,22 @@ export default function WithdrawalPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Crypto Address (USDT)
+                  Crypto Address (USDT) for Receiving Funds
                 </label>
                 <input
                   type="text"
                   value={cryptoAddress}
                   onChange={(e) => setCryptoAddress(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
-                  placeholder="Enter your USDT wallet address"
+                  placeholder="Enter your USDT wallet address where you want to receive funds"
                   disabled={isSubmitting || !isWeekday()}
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  {cryptoAddress === (profile?.wallet.withdrawalAddress || profile?.wallet.cryptoAddress)
+                    ? '✓ Using your saved withdrawal address'
+                    : '⚠️ Using a custom address - make sure it\'s correct'}
+                </p>
               </div>
 
               {withdrawAmount > 0 && (
@@ -288,6 +295,13 @@ export default function WithdrawalPage() {
             <h2 className="text-xl font-bold text-gray-900 mb-4">ℹ️ Important Information</h2>
             
             <div className="space-y-3 text-sm">
+              <div className="flex gap-2">
+                <span className="text-green-600 font-bold">✓</span>
+                <p className="text-gray-700">
+                  <strong>Withdrawal Address:</strong> Set your receiving address in your profile to use as default
+                </p>
+              </div>
+              
               <div className="flex gap-2">
                 <span className="text-green-600 font-bold">✓</span>
                 <p className="text-gray-700">

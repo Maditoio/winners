@@ -15,6 +15,7 @@ interface Profile {
   wallet: {
     balance: string
     cryptoAddress: string
+    withdrawalAddress?: string
   }
 }
 
@@ -64,6 +65,10 @@ export default function ProfilePage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordChangeMessage, setPasswordChangeMessage] = useState('')
   const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [withdrawalAddress, setWithdrawalAddress] = useState('')
+  const [isUpdatingWithdrawalAddress, setIsUpdatingWithdrawalAddress] = useState(false)
+  const [withdrawalAddressMessage, setWithdrawalAddressMessage] = useState('')
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -85,6 +90,7 @@ export default function ProfilePage() {
       if (!res.ok) throw new Error('Failed to fetch profile')
       const data = await res.json()
       setProfile(data)
+      setWithdrawalAddress(data.wallet?.withdrawalAddress || '')
       
       // Generate QR code for crypto address
       if (data.wallet?.cryptoAddress) {
@@ -211,7 +217,42 @@ export default function ProfilePage() {
       setIsChangingPassword(false)
     }
   }
+const handleUpdateWithdrawalAddress = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setWithdrawalAddressMessage('')
 
+    if (!withdrawalAddress || withdrawalAddress.length < 10) {
+      setWithdrawalAddressMessage('Please enter a valid withdrawal address')
+      return
+    }
+
+    setIsUpdatingWithdrawalAddress(true)
+
+    try {
+      const res = await fetch('/api/user/withdrawal-address', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ withdrawalAddress })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setWithdrawalAddressMessage(data.error || 'Failed to set withdrawal address')
+      } else {
+        setWithdrawalAddressMessage('✓ Withdrawal address set successfully! This cannot be changed.')
+        setWithdrawalAddress('')
+        await fetchProfile() // Refresh to show locked state
+        setTimeout(() => setWithdrawalAddressMessage(''), 5000)
+      }
+    } catch (err) {
+      setWithdrawalAddressMessage('An error occurred. Please try again.')
+    } finally {
+      setIsUpdatingWithdrawalAddress(false)
+    }
+  }
+
+  
   if (status === 'loading' || isLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -234,7 +275,7 @@ export default function ProfilePage() {
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">💰 Wallet</h2>
           
-          <div className="bg-gradient-to-br from-purple-500 to-blue-500 text-white rounded-lg p-6 mb-4">
+          <div className="bg-linear-to-br from-purple-500 to-blue-500 text-white rounded-lg p-6 mb-4">
             <div className="text-sm mb-2">Balance</div>
             <div className="text-4xl font-bold">{parseFloat(profile.wallet.balance).toFixed(2)} USDT</div>
           </div>
@@ -244,35 +285,100 @@ export default function ProfilePage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Your Crypto Deposit Address
               </label>
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
                 <input
                   type="text"
                   value={profile.wallet.cryptoAddress}
                   readOnly
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
                 />
+                {qrCodeUrl && (
+                  <button
+                    onClick={() => setIsQrModalOpen(true)}
+                    className="group relative flex-shrink-0"
+                    type="button"
+                    title="Click to view QR code"
+                  >
+                    <img 
+                      src={qrCodeUrl} 
+                      alt="QR Code" 
+                      className="w-10 h-10 border-2 border-purple-200 rounded-lg hover:border-purple-400 transition-colors cursor-pointer" 
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded-lg transition-colors flex items-center justify-center">
+                      <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">🔍</span>
+                    </div>
+                  </button>
+                )}
                 <button
                   onClick={() => copyToClipboard(profile.wallet.cryptoAddress, 'crypto')}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex-shrink-0"
                 >
                   {copiedCrypto ? '✓' : 'Copy'}
                 </button>
               </div>
+              <p className="text-xs text-gray-500 mt-1">Use this address to deposit USDT</p>
             </div>
 
-            {qrCodeUrl && (
-              <div className="text-center">
-                <img src={qrCodeUrl} alt="QR Code" className="mx-auto w-48 h-48" />
-                <p className="text-sm text-gray-600 mt-2">
-                  Scan to deposit USDT
-                </p>
-              </div>
-            )}
+            <div className="border-t border-gray-200 pt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                🏦 Your Withdrawal Address (Where you receive funds)
+              </label>
+              
+              {profile.wallet?.withdrawalAddress ? (
+                <div className="space-y-2">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-start gap-2">
+                      <span className="text-green-600 text-lg">✓</span>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-green-900 mb-1">Withdrawal Address Set</p>
+                        <code className="text-xs text-green-800 bg-green-100 px-2 py-1 rounded break-all">
+                          {profile.wallet.withdrawalAddress}
+                        </code>
+                        <p className="text-xs text-green-700 mt-2">
+                          🔒 This address is locked and cannot be changed for security reasons.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleUpdateWithdrawalAddress} className="space-y-3">
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <p className="text-sm text-yellow-800 font-medium mb-1">⚠️ Important</p>
+                    <p className="text-xs text-yellow-700">
+                      Once you set your withdrawal address, it <strong>cannot be changed</strong> for security reasons. 
+                      Please double-check before saving.
+                    </p>
+                  </div>
+                  
+                  <input
+                    type="text"
+                    value={withdrawalAddress}
+                    onChange={(e) => setWithdrawalAddress(e.target.value)}
+                    placeholder="Enter your USDT wallet address for withdrawals"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 font-mono text-sm"
+                    required
+                  />
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-800">
-                <strong>Note:</strong> Send only USDT to this address. Deposits typically reflect within 5-10 minutes. Minimum deposit is 3 USDT.
-              </p>
+                  {withdrawalAddressMessage && (
+                    <div className={`px-3 py-2 rounded-lg text-sm ${
+                      withdrawalAddressMessage.includes('successfully')
+                        ? 'bg-green-50 text-green-700 border border-green-200'
+                        : 'bg-red-50 text-red-700 border border-red-200'
+                    }`}>
+                      {withdrawalAddressMessage}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={isUpdatingWithdrawalAddress || !withdrawalAddress}
+                    className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 font-medium"
+                  >
+                    {isUpdatingWithdrawalAddress ? 'Setting Address...' : 'Set Withdrawal Address (Cannot be changed later)'}
+                  </button>
+                </form>
+              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
@@ -341,7 +447,7 @@ export default function ProfilePage() {
                   {referralInfo.referrals.map((ref) => (
                     <div key={ref.id} className="flex justify-between items-center bg-gray-50 p-3 rounded">
                       <div>
-                        <div className="font-medium text-sm">{ref.name || 'User'}</div>
+                        <div className="font-medium text-sm text-gray-900">{ref.name || 'User'}</div>
                         <div className="text-xs text-gray-600">{ref.email}</div>
                       </div>
                       <div className="text-xs text-gray-500">
@@ -424,32 +530,43 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {/* Account Info */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">👤 Account Details</h2>
-          
-          <div className="space-y-3">
+        {/* Account Info & Security */}
+        <div className="bg-white rounded-lg shadow-lg p-6 lg:col-span-2">
+          <div className="grid lg:grid-cols-2 gap-8">
+            {/* Account Details */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
-              <div className="mt-1 text-gray-900">{profile.email}</div>
-            </div>
-            {profile.name && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Name</label>
-                <div className="mt-1 text-gray-900">{profile.name}</div>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">👤 Account Details</h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <div className="text-gray-900 font-medium">{profile.email}</div>
+                </div>
+                {profile.name && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <div className="text-gray-900 font-medium">{profile.name}</div>
+                  </div>
+                )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                  <div className="mt-1">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                      {profile.role}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Referral Code</label>
+                  <div className="text-gray-900 font-mono font-semibold">{profile.referralCode}</div>
+                </div>
               </div>
-            )}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Role</label>
-              <div className="mt-1">
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
-                  {profile.role}
+            </div>
 
-        {/* Change Password */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">🔒 Change Password</h2>
-          
-          <form onSubmit={handleChangePassword} className="space-y-4">
+            {/* Change Password */}
+            <div className="border-l border-gray-200 pl-8">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">🔒 Change Password</h2>
+              <form onSubmit={handleChangePassword} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Current Password
@@ -502,21 +619,63 @@ export default function ProfilePage() {
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={isChangingPassword}
-              className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
-            >
-              {isChangingPassword ? 'Changing Password...' : 'Change Password'}
-            </button>
-          </form>
-        </div>
-                </span>
-              </div>
+                <button
+                  type="submit"
+                  disabled={isChangingPassword}
+                  className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                >
+                  {isChangingPassword ? 'Changing Password...' : 'Change Password'}
+                </button>
+              </form>
             </div>
           </div>
         </div>
       </div>
+
+      {/* QR Code Modal */}
+      {isQrModalOpen && qrCodeUrl && (
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setIsQrModalOpen(false)}
+        >
+          <div 
+            className="bg-white rounded-lg p-6 max-w-md w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-gray-900">Deposit QR Code</h3>
+              <button
+                onClick={() => setIsQrModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+            <div className="flex flex-col items-center">
+              <img 
+                src={qrCodeUrl} 
+                alt="QR Code" 
+                className="w-64 h-64 border-2 border-gray-200 rounded-lg" 
+              />
+              <p className="text-sm text-gray-600 mt-4 text-center">
+                Scan this QR code to deposit USDT to your wallet
+              </p>
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg w-full">
+                <p className="text-xs text-gray-600 mb-1">Address:</p>
+                <code className="text-xs text-gray-900 break-all font-mono">
+                  {profile.wallet.cryptoAddress}
+                </code>
+              </div>
+              <button
+                onClick={() => setIsQrModalOpen(false)}
+                className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mt-8 md:hidden">
         <button

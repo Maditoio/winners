@@ -65,12 +65,22 @@ export default function AdminPage() {
           </div>
         </Link>
 
+        {/* Finance Dashboard Card */}
+        <Link href="/admin/finance">
+          <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer border-2 border-green-200">
+            <div className="text-3xl mb-3">💰</div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Finance Dashboard</h2>
+            <p className="text-gray-600 text-sm mb-4">Income, expenses, withdrawal fees & audits</p>
+            <div className="text-green-600 font-medium text-sm">View Finances →</div>
+          </div>
+        </Link>
+
         {/* Financial Reports Card */}
         <Link href="/admin/reports">
           <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer">
             <div className="text-3xl mb-3">📊</div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Financial Reports</h2>
-            <p className="text-gray-600 text-sm mb-4">View revenue and draw statistics</p>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Draw Reports</h2>
+            <p className="text-gray-600 text-sm mb-4">View draw revenue and statistics</p>
             <div className="text-purple-600 font-medium text-sm">View Reports →</div>
           </div>
         </Link>
