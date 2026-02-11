@@ -85,7 +85,7 @@ export async function POST(req: Request) {
       )
     }
 
-    const expectedCurrency = (process.env.NOWPAYMENTS_PAY_CURRENCY || 'usdtp').toLowerCase()
+    const expectedCurrency = (process.env.NOWPAYMENTS_PAY_CURRENCY || 'usdtmatic').toLowerCase()
     if (payCurrency && payCurrency !== expectedCurrency) {
       return NextResponse.json(
         { error: 'Unsupported payment currency' },
