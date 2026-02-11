@@ -42,10 +42,12 @@ export async function createNowPaymentsPayment(params: {
 }): Promise<NowPaymentsCreatePaymentResponse> {
   const apiKey = process.env.NOWPAYMENTS_API_KEY
   if (!apiKey) {
+    console.error('[NOWPAYMENTS] API key not configured')
     throw new Error('NOWPAYMENTS_API_KEY is not set')
   }
 
   const baseUrl = process.env.NOWPAYMENTS_API_BASE_URL || DEFAULT_BASE_URL
+  console.log('[NOWPAYMENTS] Using API base URL:', baseUrl)
 
   const payload = {
     price_amount: params.amount,
@@ -55,6 +57,10 @@ export async function createNowPaymentsPayment(params: {
     order_description: params.description,
     ipn_callback_url: params.ipnCallbackUrl
   }
+  console.log('[NOWPAYMENTS] Sending payment request:', {
+    ...payload,
+    ipn_callback_url: '***redacted***'
+  })
 
   const response = await fetch(`${baseUrl}/payment`, {
     method: 'POST',
@@ -65,10 +71,20 @@ export async function createNowPaymentsPayment(params: {
     body: JSON.stringify(payload)
   })
 
+  console.log('[NOWPAYMENTS] Response status:', response.status)
+
   if (!response.ok) {
     const errorBody = await response.text()
-    throw new Error(`NOWPayments create payment failed: ${errorBody}`)
+    const errorLog = `NOWPayments create payment failed with status ${response.status}: ${errorBody}`
+    console.error('[NOWPAYMENTS]', errorLog)
+    throw new Error(errorLog)
   }
 
-  return response.json()
+  const data = await response.json()
+  console.log('[NOWPAYMENTS] Payment created successfully:', {
+    payment_id: data.payment_id,
+    pay_address: data.pay_address ? '***redacted***' : 'missing',
+    pay_currency: data.pay_currency
+  })
+  return data
 }

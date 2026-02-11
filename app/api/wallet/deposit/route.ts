@@ -19,8 +19,11 @@ const parseAmount = (value: unknown) => {
 // Webhook endpoint for crypto deposits
 export async function POST(req: Request) {
   try {
+    console.log('[DEPOSIT WEBHOOK] Received IPN webhook')
+    
     const ipnSecret = process.env.NOWPAYMENTS_IPN_SECRET
     if (!ipnSecret) {
+      console.error('[DEPOSIT WEBHOOK] IPN secret not configured')
       return NextResponse.json(
         { error: 'IPN secret is not configured' },
         { status: 500 }
@@ -31,6 +34,7 @@ export async function POST(req: Request) {
       || req.headers.get('x-nowpayments-signature')
 
     if (!signature) {
+      console.warn('[DEPOSIT WEBHOOK] Missing signature header')
       return NextResponse.json(
         { error: 'Missing signature' },
         { status: 401 }
@@ -43,19 +47,23 @@ export async function POST(req: Request) {
     try {
       payload = JSON.parse(rawBody)
     } catch {
+      console.error('[DEPOSIT WEBHOOK] Failed to parse JSON body')
       return NextResponse.json(
         { error: 'Invalid JSON body' },
         { status: 400 }
       )
     }
+    console.log('[DEPOSIT WEBHOOK] Payload parsed, order_id:', payload.order_id)
 
     const isValidSignature = verifyNowPaymentsSignature(
       payload,
       signature,
       ipnSecret
     )
+    console.log('[DEPOSIT WEBHOOK] Signature valid:', isValidSignature)
 
     if (!isValidSignature) {
+      console.warn('[DEPOSIT WEBHOOK] Signature verification failed')
       return NextResponse.json(
         { error: 'Invalid signature' },
         { status: 401 }
@@ -68,6 +76,7 @@ export async function POST(req: Request) {
     const payCurrency = payload.pay_currency
       ? String(payload.pay_currency).toLowerCase()
       : ''
+    console.log('[DEPOSIT WEBHOOK] Extracted values:', { paymentId, paymentStatus, payCurrency })
 
     if (!paymentId) {
       return NextResponse.json(
