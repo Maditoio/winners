@@ -12,11 +12,47 @@ export async function POST(req: Request) {
       )
     }
 
-    const { email, password, name, referralCode } = await req.json()
+    const { email, password, name, referralCode, dateOfBirth, termsAccepted } = await req.json()
 
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email and password are required' },
+        { status: 400 }
+      )
+    }
+
+    if (!dateOfBirth) {
+      return NextResponse.json(
+        { error: 'Date of birth is required' },
+        { status: 400 }
+      )
+    }
+
+    const dob = new Date(dateOfBirth)
+    if (Number.isNaN(dob.getTime())) {
+      return NextResponse.json(
+        { error: 'Invalid date of birth' },
+        { status: 400 }
+      )
+    }
+
+    const today = new Date()
+    let age = today.getFullYear() - dob.getFullYear()
+    const monthDiff = today.getMonth() - dob.getMonth()
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age -= 1
+    }
+
+    if (age < 18) {
+      return NextResponse.json(
+        { error: 'You must be at least 18 years old to register' },
+        { status: 400 }
+      )
+    }
+
+    if (!termsAccepted) {
+      return NextResponse.json(
+        { error: 'Terms and Conditions must be accepted' },
         { status: 400 }
       )
     }
@@ -54,6 +90,8 @@ export async function POST(req: Request) {
         password: hashedPassword,
         name,
         referredBy: referrerId,
+        dateOfBirth: dob,
+        termsAcceptedAt: new Date(),
       }
     })
 

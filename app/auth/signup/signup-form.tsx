@@ -11,6 +11,8 @@ export default function SignUpForm() {
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [referralCode, setReferralCode] = useState('')
+  const [dateOfBirth, setDateOfBirth] = useState('')
+  const [termsAccepted, setTermsAccepted] = useState(false)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -26,11 +28,37 @@ export default function SignUpForm() {
     setError('')
     setIsLoading(true)
 
+    const dob = new Date(dateOfBirth)
+    if (!dateOfBirth || Number.isNaN(dob.getTime())) {
+      setError('Please enter a valid date of birth')
+      setIsLoading(false)
+      return
+    }
+
+    const today = new Date()
+    let age = today.getFullYear() - dob.getFullYear()
+    const monthDiff = today.getMonth() - dob.getMonth()
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age -= 1
+    }
+
+    if (age < 18) {
+      setError('You must be at least 18 years old to register')
+      setIsLoading(false)
+      return
+    }
+
+    if (!termsAccepted) {
+      setError('You must accept the Terms and Conditions to register')
+      setIsLoading(false)
+      return
+    }
+
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name, referralCode }),
+        body: JSON.stringify({ email, password, name, referralCode, dateOfBirth, termsAccepted }),
       })
 
       const data = await res.json()
@@ -109,6 +137,21 @@ export default function SignUpForm() {
               />
             </div>
             <div>
+              <label htmlFor="dateOfBirth" className="sr-only">
+                Date of Birth
+              </label>
+              <input
+                id="dateOfBirth"
+                name="dateOfBirth"
+                type="date"
+                required
+                value={dateOfBirth}
+                onChange={(e) => setDateOfBirth(e.target.value)}
+                className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
+                placeholder="Date of birth"
+              />
+            </div>
+            <div>
               <label htmlFor="referralCode" className="sr-only">
                 Referral Code
               </label>
@@ -122,6 +165,25 @@ export default function SignUpForm() {
                 placeholder="Referral Code (optional)"
               />
             </div>
+          </div>
+
+          <div className="flex items-start gap-2 text-sm">
+            <input
+              id="terms"
+              name="terms"
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+              required
+            />
+            <label htmlFor="terms" className="text-gray-700">
+              I confirm I am at least 18 years old and agree to the{' '}
+              <Link href="/terms" className="text-purple-600 hover:text-purple-500">
+                Terms and Conditions
+              </Link>
+              .
+            </label>
           </div>
 
           <div>
