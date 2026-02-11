@@ -94,16 +94,7 @@ export default function ProfilePage() {
       const data = await res.json()
       setProfile(data)
       setWithdrawalAddress(data.wallet?.withdrawalAddress || '')
-
-      const address = data.wallet?.cryptoAddress || ''
-      setDepositAddress(address)
-
-      if (address && !address.startsWith('np_pending_')) {
-        const qr = await QRCode.toDataURL(address)
-        setQrCodeUrl(qr)
-      } else {
-        setQrCodeUrl('')
-      }
+      // Don't auto-load old deposit address - user must generate new one
     } catch (err) {
       console.error(err)
     } finally {
@@ -299,7 +290,7 @@ const handleUpdateWithdrawalAddress = async (e: React.FormEvent) => {
     return null
   }
 
-  const activeDepositAddress = depositAddress || profile.wallet.cryptoAddress || ''
+  const activeDepositAddress = depositAddress || ''
   const isPendingAddress = !activeDepositAddress || activeDepositAddress.startsWith('np_pending_')
   const displayDepositAddress = isPendingAddress ? '' : activeDepositAddress
 
