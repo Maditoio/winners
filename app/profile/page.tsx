@@ -325,7 +325,7 @@ const handleUpdateWithdrawalAddress = async (e: React.FormEvent) => {
                 {qrCodeUrl && !isPendingAddress && (
                   <button
                     onClick={() => setIsQrModalOpen(true)}
-                    className="group relative flex-shrink-0"
+                    className="group relative shrink-0"
                     type="button"
                     title="Click to view QR code"
                   >
@@ -341,7 +341,7 @@ const handleUpdateWithdrawalAddress = async (e: React.FormEvent) => {
                 )}
                 <button
                   onClick={() => copyToClipboard(activeDepositAddress, 'crypto')}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex-shrink-0 disabled:opacity-50"
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 shrink-0 disabled:opacity-50"
                   disabled={isPendingAddress}
                 >
                   {copiedCrypto ? '✓' : 'Copy'}

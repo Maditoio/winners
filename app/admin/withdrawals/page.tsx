@@ -205,7 +205,7 @@ export default function AdminWithdrawalsPage() {
               {filteredWithdrawals.map((withdrawal) => (
                 <div key={withdrawal.id} className="p-6 hover:bg-gray-50">
                   <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-                    <div className="flex-1 min-w-[200px]">
+                    <div className="flex-1 min-w-50">
                       <div className="font-semibold text-gray-900 mb-1">
                         {withdrawal.user.name || 'User'}
                       </div>

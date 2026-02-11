@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -62,17 +62,7 @@ export default function FinanceAdminPage() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin')
-    } else if (session && session.user.role !== 'ADMIN') {
-      router.push('/draws')
-    } else if (session?.user?.role === 'ADMIN') {
-      fetchFinanceData()
-    }
-  }, [status, session, router])
-
-  const fetchFinanceData = async () => {
+  const fetchFinanceData = useCallback(async () => {
     setIsLoading(true)
     setError('')
     try {
@@ -84,12 +74,22 @@ export default function FinanceAdminPage() {
       if (!res.ok) throw new Error('Failed to fetch finance data')
       const data = await res.json()
       setFinanceData(data)
-    } catch (err) {
+    } catch {
       setError('Failed to load finance data')
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [startDate, endDate])
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin')
+    } else if (session && session.user.role !== 'ADMIN') {
+      router.push('/draws')
+    } else if (session?.user?.role === 'ADMIN') {
+      fetchFinanceData()
+    }
+  }, [status, session, router, fetchFinanceData])
 
   const handleDateFilter = () => {
     fetchFinanceData()
@@ -160,13 +160,14 @@ export default function FinanceAdminPage() {
   }
 
   return (
-    <div className=\"min-h-screen bg-gray-50\">\n      <div className=\"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8\">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
-          <Link href="/admin" className="text-purple-600 hover:text-purple-700">
-            ← Back
-          </Link>
-          <h1 className=\"text-3xl font-bold text-black\">💰 Financial Dashboard</h1>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <Link href="/admin" className="text-purple-600 hover:text-purple-700">
+              ← Back
+            </Link>
+            <h1 className="text-3xl font-bold text-black">💰 Financial Dashboard</h1>
         </div>
       </div>
 
@@ -421,6 +422,7 @@ export default function FinanceAdminPage() {
           </div>
         </>
       ) : null}
+      </div>
     </div>
   )
 }

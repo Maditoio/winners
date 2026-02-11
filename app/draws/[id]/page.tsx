@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter, useParams } from 'next/navigation'
 import Image from 'next/image'
@@ -44,6 +44,31 @@ export default function DrawDetailPage() {
   const [success, setSuccess] = useState('')
   const [userTickets, setUserTickets] = useState<string[]>([])
 
+  const fetchDraw = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/draws/${drawId}`)
+      if (!res.ok) throw new Error('Failed to fetch draw')
+      const data = await res.json()
+      setDraw(data)
+    } catch {
+      setError('Failed to load draw details')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [drawId])
+
+  const fetchUserTickets = useCallback(async () => {
+    try {
+      const res = await fetch('/api/user/tickets')
+      if (res.ok) {
+        const data: UserTickets = await res.json()
+        setUserTickets(data[drawId] || [])
+      }
+    } catch {
+      console.error('Failed to fetch tickets')
+    }
+  }, [drawId])
+
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/signin')
@@ -55,32 +80,7 @@ export default function DrawDetailPage() {
       fetchDraw()
       fetchUserTickets()
     }
-  }, [session, drawId])
-
-  const fetchDraw = async () => {
-    try {
-      const res = await fetch(`/api/draws/${drawId}`)
-      if (!res.ok) throw new Error('Failed to fetch draw')
-      const data = await res.json()
-      setDraw(data)
-    } catch (err) {
-      setError('Failed to load draw details')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const fetchUserTickets = async () => {
-    try {
-      const res = await fetch('/api/user/tickets')
-      if (res.ok) {
-        const data: UserTickets = await res.json()
-        setUserTickets(data[drawId] || [])
-      }
-    } catch (err) {
-      console.error('Failed to fetch tickets')
-    }
-  }
+  }, [session, drawId, fetchDraw, fetchUserTickets])
 
   const handleEnter = async () => {
     if (!draw || quantity < 1) return
@@ -111,7 +111,7 @@ export default function DrawDetailPage() {
         await fetchDraw()
         await fetchUserTickets()
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred. Please try again.')
     } finally {
       setIsEntering(false)

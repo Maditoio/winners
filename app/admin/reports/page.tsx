@@ -120,7 +120,7 @@ export default function ReportsAdminPage() {
       {/* Financial Summary */}
       {adminDraws.length > 0 && (
         <div className="mb-8 grid md:grid-cols-3 gap-4">
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200">
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200">
             <div className="text-sm font-medium text-purple-700 uppercase">Total Revenue (All Draws)</div>
             <div className="text-3xl font-bold text-purple-900 mt-3">${totalRevenue.toFixed(2)}</div>
           </div>

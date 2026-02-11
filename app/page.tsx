@@ -138,7 +138,7 @@ export default function Home() {
               
               <div className="space-y-3 mb-6">
                 <div className="flex gap-3">
-                  <span className="text-2xl flex-shrink-0">🔒</span>
+                  <span className="text-2xl shrink-0">🔒</span>
                   <div>
                     <h4 className="font-semibold text-gray-900 text-sm md:text-base">Cryptographically Secure</h4>
                     <p className="text-xs md:text-sm text-gray-600">Uses crypto.randomBytes for unpredictable random number generation</p>
@@ -146,7 +146,7 @@ export default function Home() {
                 </div>
                 
                 <div className="flex gap-3">
-                  <span className="text-2xl flex-shrink-0">⚖️</span>
+                  <span className="text-2xl shrink-0">⚖️</span>
                   <div>
                     <h4 className="font-semibold text-gray-900 text-sm md:text-base">One Winner Per User</h4>
                     <p className="text-xs md:text-sm text-gray-600">Even if you have multiple tickets, only 1 can win per draw</p>
@@ -154,7 +154,7 @@ export default function Home() {
                 </div>
                 
                 <div className="flex gap-3">
-                  <span className="text-2xl flex-shrink-0">⏰</span>
+                  <span className="text-2xl shrink-0">⏰</span>
                   <div>
                     <h4 className="font-semibold text-gray-900 text-sm md:text-base">Timestamped Results</h4>
                     <p className="text-xs md:text-sm text-gray-600">All draws record exact timestamp of execution for full transparency</p>
@@ -162,7 +162,7 @@ export default function Home() {
                 </div>
                 
                 <div className="flex gap-3">
-                  <span className="text-2xl flex-shrink-0">✅</span>
+                  <span className="text-2xl shrink-0">✅</span>
                   <div>
                     <h4 className="font-semibold text-gray-900 text-sm md:text-base">Publicly Verifiable</h4>
                     <p className="text-xs md:text-sm text-gray-600">Winners list is published immediately with full ticket numbers and prizes</p>
