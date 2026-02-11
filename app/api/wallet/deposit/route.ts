@@ -94,7 +94,8 @@ export async function POST(req: Request) {
       )
     }
 
-    const amountFromPayload = parseAmount(payload.actually_paid)
+    const amountFromPayload = parseAmount(payload.outcome_amount)
+      ?? parseAmount(payload.actually_paid)
       ?? parseAmount(payload.pay_amount)
       ?? parseAmount(payload.price_amount)
 
