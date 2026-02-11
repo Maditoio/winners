@@ -95,9 +95,17 @@ export async function POST(req: Request) {
     }
 
     const amountFromPayload = parseAmount(payload.outcome_amount)
-      ?? parseAmount(payload.actually_paid)
       ?? parseAmount(payload.pay_amount)
+      ?? parseAmount(payload.actually_paid)
       ?? parseAmount(payload.price_amount)
+
+    console.log('[DEPOSIT WEBHOOK] Amount parsing:', {
+      outcome_amount: payload.outcome_amount,
+      actually_paid: payload.actually_paid,
+      pay_amount: payload.pay_amount,
+      price_amount: payload.price_amount,
+      parsed: amountFromPayload
+    })
 
     if (!amountFromPayload || amountFromPayload <= 0) {
       return NextResponse.json(
@@ -170,6 +178,16 @@ export async function POST(req: Request) {
         if (isPayable) {
           const previousAmount = Number(existingTx.amount)
           const creditDelta = amountFromPayload - (Number.isFinite(previousAmount) ? previousAmount : 0)
+          
+          console.log('[DEPOSIT WEBHOOK] Update existing transaction:', {
+            paymentId,
+            previousAmount,
+            newAmount: amountFromPayload,
+            creditDelta,
+            isBelowMinimum,
+            status: isCompleted ? (isBelowMinimum ? 'FAILED' : 'COMPLETED') : 'PENDING'
+          })
+          
           const updatedTx = await tx.transaction.update({
             where: { id: existingTx.id },
             data: {
@@ -180,6 +198,7 @@ export async function POST(req: Request) {
           })
 
           if (!isBelowMinimum && creditDelta > 0) {
+            console.log('[DEPOSIT WEBHOOK] Crediting wallet delta:', creditDelta)
             await tx.wallet.update({
               where: { id: wallet.id },
               data: {
@@ -188,6 +207,9 @@ export async function POST(req: Request) {
                 }
               }
             })
+            console.log('[DEPOSIT WEBHOOK] Wallet credited successfully')
+          } else {
+            console.log('[DEPOSIT WEBHOOK] Skipping wallet credit:', { isBelowMinimum, creditDelta })
           }
 
           if (isCompleted && !isBelowMinimum && user?.referredBy && priorConfirmedDeposits === 0) {
@@ -253,7 +275,16 @@ export async function POST(req: Request) {
         }
       })
 
+      console.log('[DEPOSIT WEBHOOK] Created new transaction:', {
+        paymentId,
+        amount: amountFromPayload,
+        isPayable,
+        isBelowMinimum,
+        status: newTx.status
+      })
+
       if (isPayable && !isBelowMinimum) {
+        console.log('[DEPOSIT WEBHOOK] Crediting wallet for new transaction:', amountFromPayload)
         await tx.wallet.update({
           where: { id: wallet.id },
           data: {
@@ -262,6 +293,7 @@ export async function POST(req: Request) {
             }
           }
         })
+        console.log('[DEPOSIT WEBHOOK] Wallet credited successfully')
 
         if (isCompleted && user?.referredBy && priorConfirmedDeposits === 0) {
           const alreadyCredited = await tx.transaction.findFirst({
