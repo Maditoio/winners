@@ -96,7 +96,7 @@ export async function POST(req: Request) {
           status: 'PENDING',
           txHash: paymentId,
           toAddress: payment.pay_address,
-          description: `NOWPayments deposit (${orderId})`
+          description: `Deposit (${orderId})`
         }
       })
 

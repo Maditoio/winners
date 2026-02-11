@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 
 export default function SignUpForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { data: session, status } = useSession()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
@@ -15,6 +17,12 @@ export default function SignUpForm() {
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.push('/draws')
+    }
+  }, [status, router])
 
   useEffect(() => {
     const ref = searchParams.get('ref')

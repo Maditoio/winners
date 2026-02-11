@@ -249,7 +249,7 @@ export async function POST(req: Request) {
           status: isCompleted ? (isBelowMinimum ? 'FAILED' : 'COMPLETED') : 'PENDING',
           txHash: paymentId,
           toAddress: payAddress || undefined,
-          description: 'NOWPayments deposit'
+          description: 'Deposit'
         }
       })
 
