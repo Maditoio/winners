@@ -319,7 +319,42 @@ const handleUpdateWithdrawalAddress = async (e: React.FormEvent) => {
           </div>
 
           <div className="space-y-4">
-            <div>
+            <div className="border-t border-gray-200 pt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Create Deposit Address (USDT on Polygon)
+              </label>
+              <div className="flex flex-col gap-3">
+                <input
+                  type="number"
+                  step="0.01"
+                  min="3"
+                  value={depositAmount}
+                  onChange={(e) => setDepositAmount(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
+                  placeholder="Enter amount (min 3 USDT)"
+                />
+                <button
+                  type="button"
+                  onClick={handleCreateDepositAddress}
+                  disabled={isCreatingDeposit}
+                  className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50"
+                >
+                  {isCreatingDeposit ? 'Creating Address...' : 'Generate Deposit Address'}
+                </button>
+                {depositPaymentId && (
+                  <div className="text-xs text-gray-600">
+                    Payment ID: <span className="font-mono">{depositPaymentId}</span>
+                  </div>
+                )}
+                {depositError && (
+                  <div className="text-xs text-red-600">
+                    {depositError}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="border-t border-gray-200 pt-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Your Crypto Deposit Address
               </label>
@@ -357,41 +392,6 @@ const handleUpdateWithdrawalAddress = async (e: React.FormEvent) => {
                 </button>
               </div>
               <p className="text-xs text-gray-500 mt-1">Generate an address and send USDT on Polygon</p>
-            </div>
-
-            <div className="border-t border-gray-200 pt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Create Deposit Address (USDT on Polygon)
-              </label>
-              <div className="flex flex-col gap-3">
-                <input
-                  type="number"
-                  step="0.01"
-                  min="3"
-                  value={depositAmount}
-                  onChange={(e) => setDepositAmount(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
-                  placeholder="Enter amount (min 3 USDT)"
-                />
-                <button
-                  type="button"
-                  onClick={handleCreateDepositAddress}
-                  disabled={isCreatingDeposit}
-                  className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50"
-                >
-                  {isCreatingDeposit ? 'Creating Address...' : 'Generate Deposit Address'}
-                </button>
-                {depositPaymentId && (
-                  <div className="text-xs text-gray-600">
-                    Payment ID: <span className="font-mono">{depositPaymentId}</span>
-                  </div>
-                )}
-                {depositError && (
-                  <div className="text-xs text-red-600">
-                    {depositError}
-                  </div>
-                )}
-              </div>
             </div>
 
             <div className="border-t border-gray-200 pt-4">

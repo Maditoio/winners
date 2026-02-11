@@ -57,8 +57,8 @@ export default function WithdrawalPage() {
       if (!res.ok) throw new Error('Failed to fetch profile')
       const data = await res.json()
       setProfile(data)
-      // Use withdrawal address if set, otherwise use deposit address as fallback
-      setCryptoAddress(data.wallet.withdrawalAddress || data.wallet.cryptoAddress)
+      // Use withdrawal address if set; withdrawals require a saved address
+      setCryptoAddress(data.wallet.withdrawalAddress || '')
     } catch (err) {
       console.error(err)
     } finally {
@@ -121,9 +121,15 @@ export default function WithdrawalPage() {
       return
     }
 
+    if (!profile.wallet.withdrawalAddress) {
+      setMessageType('error')
+      setMessage('Please set a withdrawal address in your profile before requesting a withdrawal')
+      return
+    }
+
     if (!cryptoAddress || cryptoAddress.length < 10) {
       setMessageType('error')
-      setMessage('Please enter a valid crypto address')
+      setMessage('Saved withdrawal address is missing or invalid')
       return
     }
 
@@ -235,22 +241,20 @@ export default function WithdrawalPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Crypto Address (USDT) for Receiving Funds
+                  Withdrawal Address (USDT)
                 </label>
-                <input
-                  type="text"
-                  value={cryptoAddress}
-                  onChange={(e) => setCryptoAddress(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
-                  placeholder="Enter your USDT wallet address where you want to receive funds"
-                  disabled={isSubmitting || !isWeekday()}
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {cryptoAddress === (profile?.wallet.withdrawalAddress || profile?.wallet.cryptoAddress)
-                    ? '✓ Using your saved withdrawal address'
-                    : '⚠️ Using a custom address - make sure it\'s correct'}
-                </p>
+                {profile.wallet.withdrawalAddress ? (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <div className="text-xs text-green-700 mb-1">Using saved withdrawal address</div>
+                    <code className="block text-xs text-green-900 bg-green-100 px-2 py-1 rounded break-all">
+                      {profile.wallet.withdrawalAddress}
+                    </code>
+                  </div>
+                ) : (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
+                    Please set your withdrawal address in your profile before requesting a withdrawal.
+                  </div>
+                )}
               </div>
 
               {withdrawAmount > 0 && (
@@ -282,7 +286,7 @@ export default function WithdrawalPage() {
 
               <button
                 type="submit"
-                disabled={isSubmitting || !isWeekday()}
+                disabled={isSubmitting || !isWeekday() || !profile.wallet.withdrawalAddress}
                 className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? 'Submitting Request...' : 'Submit Withdrawal Request'}
