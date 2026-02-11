@@ -30,8 +30,9 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-4xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 className="text-4xl font-bold text-black mb-2">Admin Dashboard</h1>
       <p className="text-gray-600 mb-12">Manage your draw platform</p>
 
       <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -94,6 +95,7 @@ export default function AdminPage() {
             <div className="text-purple-600 font-medium text-sm">Go to Settings →</div>
           </div>
         </Link>
+      </div>
       </div>
     </div>
   )

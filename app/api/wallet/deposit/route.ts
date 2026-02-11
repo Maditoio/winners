@@ -2,33 +2,123 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { verifyNowPaymentsSignature } from '@/lib/nowpayments'
+
+const MINIMUM_DEPOSIT = 3
+const COMPLETED_STATUSES = new Set(['confirmed', 'finished'])
+const FAILED_STATUSES = new Set(['failed', 'refunded', 'expired'])
+
+const normalizeStatus = (status?: string) =>
+  status?.toLowerCase().trim() || ''
+
+const parseAmount = (value: unknown) => {
+  const amount = Number(value)
+  return Number.isFinite(amount) ? amount : null
+}
 
 // Webhook endpoint for crypto deposits
 export async function POST(req: Request) {
   try {
-    const { txHash, toAddress, amount, status } = await req.json()
-
-    if (!txHash || !toAddress || !amount) {
+    const ipnSecret = process.env.NOWPAYMENTS_IPN_SECRET
+    if (!ipnSecret) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'IPN secret is not configured' },
+        { status: 500 }
+      )
+    }
+
+    const signature = req.headers.get('x-nowpayments-sig')
+      || req.headers.get('x-nowpayments-signature')
+
+    if (!signature) {
+      return NextResponse.json(
+        { error: 'Missing signature' },
+        { status: 401 }
+      )
+    }
+
+    const rawBody = await req.text()
+    let payload: Record<string, unknown>
+
+    try {
+      payload = JSON.parse(rawBody)
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid JSON body' },
         { status: 400 }
       )
     }
 
-    // Validate minimum deposit
-    const MINIMUM_DEPOSIT = 3
-    const depositAmount = parseFloat(amount)
-    if (depositAmount < MINIMUM_DEPOSIT) {
+    const isValidSignature = verifyNowPaymentsSignature(
+      payload,
+      signature,
+      ipnSecret
+    )
+
+    if (!isValidSignature) {
       return NextResponse.json(
-        { error: `Minimum deposit is ${MINIMUM_DEPOSIT} USDT` },
+        { error: 'Invalid signature' },
+        { status: 401 }
+      )
+    }
+
+    const paymentId = payload.payment_id ? String(payload.payment_id) : ''
+    const paymentStatus = normalizeStatus(String(payload.payment_status || ''))
+    const payAddress = payload.pay_address ? String(payload.pay_address) : ''
+    const payCurrency = payload.pay_currency
+      ? String(payload.pay_currency).toLowerCase()
+      : ''
+
+    if (!paymentId) {
+      return NextResponse.json(
+        { error: 'Missing payment_id' },
         { status: 400 }
       )
     }
 
-    // Find wallet by crypto address
-    const wallet = await prisma.wallet.findUnique({
-      where: { cryptoAddress: toAddress }
+    const expectedCurrency = (process.env.NOWPAYMENTS_PAY_CURRENCY || 'usdtpolygon').toLowerCase()
+    if (payCurrency && payCurrency !== expectedCurrency) {
+      return NextResponse.json(
+        { error: 'Unsupported payment currency' },
+        { status: 400 }
+      )
+    }
+
+    const amountFromPayload = parseAmount(payload.actually_paid)
+      ?? parseAmount(payload.pay_amount)
+      ?? parseAmount(payload.price_amount)
+
+    if (!amountFromPayload || amountFromPayload <= 0) {
+      return NextResponse.json(
+        { error: 'Invalid payment amount' },
+        { status: 400 }
+      )
+    }
+
+    let wallet = null
+    let transaction = await prisma.transaction.findUnique({
+      where: { txHash: paymentId }
     })
+
+    if (transaction) {
+      wallet = await prisma.wallet.findUnique({
+        where: { userId: transaction.userId }
+      })
+    }
+
+    if (!wallet && payload.order_id) {
+      const orderId = String(payload.order_id)
+      const userId = orderId.split(':')[0]
+      wallet = await prisma.wallet.findUnique({
+        where: { userId }
+      })
+    }
+
+    if (!wallet && payAddress) {
+      wallet = await prisma.wallet.findUnique({
+        where: { cryptoAddress: payAddress }
+      })
+    }
 
     if (!wallet) {
       return NextResponse.json(
@@ -42,101 +132,118 @@ export async function POST(req: Request) {
       select: { referredBy: true, email: true }
     })
 
-    const priorConfirmedDeposits = await prisma.transaction.count({
-      where: {
-        userId: wallet.userId,
-        type: 'DEPOSIT',
-        status: 'COMPLETED'
-      }
-    })
+    const isCompleted = COMPLETED_STATUSES.has(paymentStatus)
+    const isFailed = FAILED_STATUSES.has(paymentStatus)
+    const isBelowMinimum = amountFromPayload < MINIMUM_DEPOSIT
 
-    // Check if transaction already processed
-    const existingTx = await prisma.transaction.findUnique({
-      where: { txHash }
-    })
+    const result = await prisma.$transaction(async (tx) => {
+      const existingTx = await tx.transaction.findUnique({
+        where: { txHash: paymentId }
+      })
 
-    if (existingTx) {
-      if (status === 'confirmed' && existingTx.status !== 'COMPLETED') {
-        await prisma.transaction.update({
-          where: { id: existingTx.id },
-          data: { status: 'COMPLETED' }
-        })
-
-        await prisma.wallet.update({
-          where: { id: wallet.id },
-          data: {
-            balance: {
-              increment: parseFloat(amount)
-            }
-          }
-        })
-
-        if (user?.referredBy && priorConfirmedDeposits === 0) {
-          const alreadyCredited = await prisma.transaction.findFirst({
-            where: {
-              userId: user.referredBy,
-              type: 'REFERRAL_BONUS',
-              description: `Referral bonus for user ${wallet.userId}`
-            }
-          })
-
-          if (!alreadyCredited) {
-            const referralSetting = await prisma.appSetting.findUnique({
-              where: { key: 'referralBonus' }
-            })
-            const referralBonus = referralSetting
-              ? parseFloat(referralSetting.value)
-              : 0.25
-
-            await prisma.wallet.update({
-              where: { userId: user.referredBy },
-              data: {
-                balance: {
-                  increment: referralBonus
-                }
-              }
-            })
-
-            await prisma.transaction.create({
-              data: {
-                userId: user.referredBy,
-                type: 'REFERRAL_BONUS',
-                amount: referralBonus,
-                status: 'COMPLETED',
-                description: `Referral bonus for user ${wallet.userId}`
-              }
-            })
-          }
-        }
+      if (existingTx?.status === 'COMPLETED') {
+        return existingTx
       }
 
-      return NextResponse.json(
-        { message: 'Transaction already processed' },
-        { status: 200 }
-      )
-    }
-
-    const isConfirmed = status === 'confirmed'
-
-    const transaction = await prisma.$transaction(async (tx) => {
-      const depositTx = await tx.transaction.create({
-        data: {
+      const priorConfirmedDeposits = await tx.transaction.count({
+        where: {
           userId: wallet.userId,
           type: 'DEPOSIT',
-          amount: depositAmount,
-          status: isConfirmed ? 'COMPLETED' : 'PENDING',
-          txHash,
-          toAddress,
-          description: 'Crypto deposit'
+          status: 'COMPLETED'
         }
       })
 
-      if (isConfirmed) {
+      if (existingTx) {
+        if (isCompleted) {
+          const updatedTx = await tx.transaction.update({
+            where: { id: existingTx.id },
+            data: {
+              status: isBelowMinimum ? 'FAILED' : 'COMPLETED',
+              amount: amountFromPayload,
+              toAddress: payAddress || existingTx.toAddress
+            }
+          })
+
+          if (!isBelowMinimum) {
+            await tx.wallet.update({
+              where: { id: wallet.id },
+              data: {
+                balance: {
+                  increment: amountFromPayload
+                }
+              }
+            })
+          }
+
+          if (!isBelowMinimum && user?.referredBy && priorConfirmedDeposits === 0) {
+            const alreadyCredited = await tx.transaction.findFirst({
+              where: {
+                userId: user.referredBy,
+                type: 'REFERRAL_BONUS',
+                description: `Referral bonus for user ${wallet.userId}`
+              }
+            })
+
+            if (!alreadyCredited) {
+              const referralSetting = await tx.appSetting.findUnique({
+                where: { key: 'referralBonus' }
+              })
+              const referralBonus = referralSetting
+                ? parseFloat(referralSetting.value)
+                : 0.25
+
+              await tx.wallet.update({
+                where: { userId: user.referredBy },
+                data: {
+                  balance: {
+                    increment: referralBonus
+                  }
+                }
+              })
+
+              await tx.transaction.create({
+                data: {
+                  userId: user.referredBy,
+                  type: 'REFERRAL_BONUS',
+                  amount: referralBonus,
+                  status: 'COMPLETED',
+                  description: `Referral bonus for user ${wallet.userId}`
+                }
+              })
+            }
+          }
+
+          return updatedTx
+        }
+
+        if (isFailed) {
+          return tx.transaction.update({
+            where: { id: existingTx.id },
+            data: { status: 'FAILED' }
+          })
+        }
+
+        return existingTx
+      }
+
+      const newTx = await tx.transaction.create({
+        data: {
+          userId: wallet.userId,
+          type: 'DEPOSIT',
+          amount: amountFromPayload,
+          status: isCompleted ? (isBelowMinimum ? 'FAILED' : 'COMPLETED') : 'PENDING',
+          txHash: paymentId,
+          toAddress: payAddress || undefined,
+          description: 'NOWPayments deposit'
+        }
+      })
+
+      if (isCompleted && !isBelowMinimum) {
         await tx.wallet.update({
           where: { id: wallet.id },
           data: {
             balance: {
-              increment: depositAmount
+              increment: amountFromPayload
             }
           }
         })
@@ -180,12 +287,26 @@ export async function POST(req: Request) {
         }
       }
 
-      return depositTx
+      if (isFailed && !isCompleted) {
+        await tx.transaction.update({
+          where: { id: newTx.id },
+          data: { status: 'FAILED' }
+        })
+      }
+
+      return newTx
     })
+
+    if (isCompleted && isBelowMinimum) {
+      return NextResponse.json(
+        { message: 'Deposit below minimum, no credit applied' },
+        { status: 200 }
+      )
+    }
 
     return NextResponse.json({
       message: 'Deposit processed successfully',
-      transaction
+      transaction: result
     })
   } catch (error) {
     console.error('Deposit error:', error)

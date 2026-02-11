@@ -77,6 +77,6 @@ export const authOptions: NextAuthOptions = {
 export async function generateCryptoAddress(userId: string): Promise<string> {
   // In production, integrate with actual crypto wallet generation
   // For now, generate a unique identifier
-  const address = `0x${nanoid(40)}`
+  const address = `np_pending_${nanoid(24)}`
   return address
 }

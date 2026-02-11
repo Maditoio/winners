@@ -61,12 +61,13 @@ export default function ReferralAnalyticsPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center gap-3 mb-8">
-        <Link href="/admin/reports" className="text-purple-600 hover:text-purple-700">
-          ← Back
-        </Link>
-        <h1 className="text-3xl font-bold text-gray-900">Referral Bonus Analytics</h1>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center gap-3 mb-8">
+          <Link href="/admin/reports" className="text-purple-600 hover:text-purple-700">
+            ← Back
+          </Link>
+          <h1 className="text-3xl font-bold text-black">Referral Bonus Analytics</h1>
       </div>
 
       {error && (
@@ -201,6 +202,7 @@ export default function ReferralAnalyticsPage() {
           </div>
         </div>
       ) : null}
+      </div>
     </div>
   )
 }

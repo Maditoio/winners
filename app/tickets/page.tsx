@@ -73,8 +73,9 @@ export default function TicketsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">My Tickets</h1>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 className="text-3xl font-bold text-black mb-8">My Tickets</h1>
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
@@ -147,6 +148,7 @@ export default function TicketsPage() {
           })}
         </div>
       )}
+      </div>
     </div>
   )
 }

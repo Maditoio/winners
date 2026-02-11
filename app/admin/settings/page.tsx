@@ -117,12 +117,13 @@ export default function SettingsAdminPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center gap-3 mb-8">
-        <Link href="/admin" className="text-purple-600 hover:text-purple-700">
-          ← Back
-        </Link>
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center gap-3 mb-8">
+          <Link href="/admin" className="text-purple-600 hover:text-purple-700">
+            ← Back
+          </Link>
+          <h1 className="text-3xl font-bold text-black">Settings</h1>
       </div>
 
       <div className="space-y-8">
@@ -261,6 +262,7 @@ export default function SettingsAdminPage() {
           <li className="pt-2"><strong>Example:</strong> If a user has 50 referrals and the tier is set to &quot;50 referrals → 75 tickets&quot;, they can buy up to 75 tickets per draw</li>
           <li className="text-xs pt-2">Users always qualify for the highest tier they meet the referral requirement for</li>
         </ul>
+      </div>
       </div>
     </div>
   )

@@ -91,13 +91,14 @@ export default function ReportsAdminPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
-          <Link href="/admin" className="text-purple-600 hover:text-purple-700">
-            ← Back
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Financial Reports</h1>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <Link href="/admin" className="text-purple-600 hover:text-purple-700">
+              ← Back
+            </Link>
+            <h1 className="text-3xl font-bold text-black">Financial Reports</h1>
         </div>
         <Link href="/admin/analytics/referral" className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium">
           Referral Analytics →
@@ -194,6 +195,7 @@ export default function ReportsAdminPage() {
           ))}
         </div>
       )}
+      </div>
     </div>
   )
 }

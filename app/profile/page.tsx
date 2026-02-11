@@ -58,8 +58,11 @@ export default function ProfilePage() {
   const [txPage, setTxPage] = useState(1)
   const [txTotalPages, setTxTotalPages] = useState(1)
   const [txLoading, setTxLoading] = useState(false)
-  const [isSimulatingDeposit, setIsSimulatingDeposit] = useState(false)
-  const [depositMessage, setDepositMessage] = useState('')
+  const [depositAmount, setDepositAmount] = useState('')
+  const [depositAddress, setDepositAddress] = useState('')
+  const [depositPaymentId, setDepositPaymentId] = useState('')
+  const [depositError, setDepositError] = useState('')
+  const [isCreatingDeposit, setIsCreatingDeposit] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -91,11 +94,15 @@ export default function ProfilePage() {
       const data = await res.json()
       setProfile(data)
       setWithdrawalAddress(data.wallet?.withdrawalAddress || '')
-      
-      // Generate QR code for crypto address
-      if (data.wallet?.cryptoAddress) {
-        const qr = await QRCode.toDataURL(data.wallet.cryptoAddress)
+
+      const address = data.wallet?.cryptoAddress || ''
+      setDepositAddress(address)
+
+      if (address && !address.startsWith('np_pending_')) {
+        const qr = await QRCode.toDataURL(address)
         setQrCodeUrl(qr)
+      } else {
+        setQrCodeUrl('')
       }
     } catch (err) {
       console.error(err)
@@ -146,34 +153,52 @@ export default function ProfilePage() {
     }
   }
 
-  const simulateDeposit = async () => {
-    if (!profile?.wallet?.cryptoAddress) return
-    setDepositMessage('')
-    setIsSimulatingDeposit(true)
+  const handleCreateDepositAddress = async () => {
+    setDepositError('')
+    setDepositPaymentId('')
+
+    const amount = Number(depositAmount)
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setDepositError('Please enter a valid deposit amount')
+      return
+    }
+
+    setIsCreatingDeposit(true)
+
     try {
-      const payload = {
-        txHash: `test_${Date.now()}`,
-        toAddress: profile.wallet.cryptoAddress,
-        amount: '15',
-        status: 'confirmed'
-      }
-      const res = await fetch('/api/wallet/deposit', {
+      const res = await fetch('/api/wallet/deposit/intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ amount })
       })
+
       const data = await res.json()
       if (!res.ok) {
-        setDepositMessage(data.error || 'Failed to simulate deposit')
-      } else {
-        setDepositMessage('Test deposit processed: 15 USDT')
-        await fetchProfile()
-        await fetchTransactions(1)
+        setDepositError(data.error || 'Failed to create deposit address')
+        return
       }
+
+      setDepositAddress(data.payAddress)
+      setDepositPaymentId(data.paymentId)
+      if (data.payAddress) {
+        const qr = await QRCode.toDataURL(data.payAddress)
+        setQrCodeUrl(qr)
+      }
+
+      setProfile((prev) => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          wallet: {
+            ...prev.wallet,
+            cryptoAddress: data.payAddress
+          }
+        }
+      })
     } catch (err) {
-      setDepositMessage('Failed to simulate deposit')
+      setDepositError('Failed to create deposit address')
     } finally {
-      setIsSimulatingDeposit(false)
+      setIsCreatingDeposit(false)
     }
   }
 
@@ -265,10 +290,14 @@ const handleUpdateWithdrawalAddress = async (e: React.FormEvent) => {
     return null
   }
 
+  const activeDepositAddress = depositAddress || profile.wallet.cryptoAddress || ''
+  const isPendingAddress = !activeDepositAddress || activeDepositAddress.startsWith('np_pending_')
+  const displayDepositAddress = isPendingAddress ? '' : activeDepositAddress
+
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">My Profile</h1>
+      <h1 className="text-3xl font-bold text-black mb-8">My Profile</h1>
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Wallet Info */}
@@ -288,11 +317,12 @@ const handleUpdateWithdrawalAddress = async (e: React.FormEvent) => {
               <div className="flex gap-2 items-center">
                 <input
                   type="text"
-                  value={profile.wallet.cryptoAddress}
+                  value={displayDepositAddress}
                   readOnly
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
+                  placeholder="Generate a deposit address to start"
                 />
-                {qrCodeUrl && (
+                {qrCodeUrl && !isPendingAddress && (
                   <button
                     onClick={() => setIsQrModalOpen(true)}
                     className="group relative flex-shrink-0"
@@ -310,13 +340,49 @@ const handleUpdateWithdrawalAddress = async (e: React.FormEvent) => {
                   </button>
                 )}
                 <button
-                  onClick={() => copyToClipboard(profile.wallet.cryptoAddress, 'crypto')}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex-shrink-0"
+                  onClick={() => copyToClipboard(activeDepositAddress, 'crypto')}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex-shrink-0 disabled:opacity-50"
+                  disabled={isPendingAddress}
                 >
                   {copiedCrypto ? '✓' : 'Copy'}
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-1">Use this address to deposit USDT</p>
+              <p className="text-xs text-gray-500 mt-1">Generate an address and send USDT on Polygon</p>
+            </div>
+
+            <div className="border-t border-gray-200 pt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Create Deposit Address (USDT on Polygon)
+              </label>
+              <div className="flex flex-col gap-3">
+                <input
+                  type="number"
+                  step="0.01"
+                  min="3"
+                  value={depositAmount}
+                  onChange={(e) => setDepositAmount(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
+                  placeholder="Enter amount (min 3 USDT)"
+                />
+                <button
+                  type="button"
+                  onClick={handleCreateDepositAddress}
+                  disabled={isCreatingDeposit}
+                  className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50"
+                >
+                  {isCreatingDeposit ? 'Creating Address...' : 'Generate Deposit Address'}
+                </button>
+                {depositPaymentId && (
+                  <div className="text-xs text-gray-600">
+                    Payment ID: <span className="font-mono">{depositPaymentId}</span>
+                  </div>
+                )}
+                {depositError && (
+                  <div className="text-xs text-red-600">
+                    {depositError}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="border-t border-gray-200 pt-4">
@@ -381,18 +447,6 @@ const handleUpdateWithdrawalAddress = async (e: React.FormEvent) => {
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                onClick={simulateDeposit}
-                disabled={isSimulatingDeposit}
-                className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50"
-              >
-                {isSimulatingDeposit ? 'Simulating...' : 'Simulate 15 USDT Deposit'}
-              </button>
-              {depositMessage && (
-                <span className="text-sm text-gray-900">{depositMessage}</span>
-              )}
-            </div>
           </div>
         </div>
 
@@ -633,7 +687,7 @@ const handleUpdateWithdrawalAddress = async (e: React.FormEvent) => {
       </div>
 
       {/* QR Code Modal */}
-      {isQrModalOpen && qrCodeUrl && (
+      {isQrModalOpen && qrCodeUrl && !isPendingAddress && (
         <div 
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
           onClick={() => setIsQrModalOpen(false)}
@@ -663,7 +717,7 @@ const handleUpdateWithdrawalAddress = async (e: React.FormEvent) => {
               <div className="mt-4 p-3 bg-gray-50 rounded-lg w-full">
                 <p className="text-xs text-gray-600 mb-1">Address:</p>
                 <code className="text-xs text-gray-900 break-all font-mono">
-                  {profile.wallet.cryptoAddress}
+                  {displayDepositAddress}
                 </code>
               </div>
               <button

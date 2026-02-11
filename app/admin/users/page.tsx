@@ -112,7 +112,7 @@ export default function AdminUsersPage() {
           </button>
         </div>
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">User Management</h1>
+        <h1 className="text-3xl font-bold text-black mb-2">User Management</h1>
         <p className="text-gray-600 mb-8">Manage user accounts and reset passwords</p>
 
         {error && (

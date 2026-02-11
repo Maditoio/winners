@@ -160,13 +160,13 @@ export default function FinanceAdminPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className=\"min-h-screen bg-gray-50\">\n      <div className=\"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8\">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           <Link href="/admin" className="text-purple-600 hover:text-purple-700">
             ← Back
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">💰 Financial Dashboard</h1>
+          <h1 className=\"text-3xl font-bold text-black\">💰 Financial Dashboard</h1>
         </div>
       </div>
 
