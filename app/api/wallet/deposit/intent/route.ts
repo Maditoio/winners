@@ -8,6 +8,7 @@ import { createNowPaymentsPayment } from '@/lib/nowpayments'
 const MINIMUM_DEPOSIT = 3
 
 export async function POST(req: Request) {
+  console.log('[DEPOSIT INTENT] ========== NEW REQUEST ==========')
   try {
     console.log('[DEPOSIT INTENT] Starting deposit request')
     const session = await getServerSession(authOptions)

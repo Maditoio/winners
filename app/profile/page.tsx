@@ -164,6 +164,7 @@ export default function ProfilePage() {
     }
 
     setIsCreatingDeposit(true)
+    console.log('[PROFILE] Starting deposit address creation:', { amount })
 
     try {
       const res = await fetch('/api/wallet/deposit/intent', {
@@ -171,13 +172,19 @@ export default function ProfilePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount })
       })
+      console.log('[PROFILE] Deposit request response status:', res.status)
 
       const data = await res.json()
+      console.log('[PROFILE] Response data:', data)
+      
       if (!res.ok) {
-        setDepositError(data.error || 'Failed to create deposit address')
+        const errorMsg = data.error || data.details || 'Failed to create deposit address'
+        console.error('[PROFILE] Deposit creation failed:', errorMsg)
+        setDepositError(errorMsg)
         return
       }
 
+      console.log('[PROFILE] Deposit successful, address:', data.payAddress ? '***' : 'missing')
       setDepositAddress(data.payAddress)
       setDepositPaymentId(data.paymentId)
       if (data.payAddress) {
@@ -196,7 +203,9 @@ export default function ProfilePage() {
         }
       })
     } catch (err) {
-      setDepositError('Failed to create deposit address')
+      const errorMsg = err instanceof Error ? err.message : String(err)
+      console.error('[PROFILE] Deposit creation exception:', errorMsg)
+      setDepositError('Failed to create deposit address: ' + errorMsg)
     } finally {
       setIsCreatingDeposit(false)
     }
