@@ -59,8 +59,8 @@ export async function POST(req: Request) {
     const ipnCallbackUrl = 'https://winners-zeta.vercel.app/api/wallet/deposit'
     console.log('[DEPOSIT INTENT] IPN Callback URL:', ipnCallbackUrl)
 
-    const payCurrency = (process.env.NOWPAYMENTS_PAY_CURRENCY || 'usdtpolygon').toLowerCase()
-    const priceCurrency = (process.env.NOWPAYMENTS_PRICE_CURRENCY || 'usdt').toLowerCase()
+    const payCurrency = (process.env.NOWPAYMENTS_PAY_CURRENCY || 'usdtp').toLowerCase()
+    const priceCurrency = (process.env.NOWPAYMENTS_PRICE_CURRENCY || 'usd').toLowerCase()
     const orderId = `${session.user.id}:${nanoid(10)}`
     console.log('[DEPOSIT INTENT] Creating payment:', { orderId, amount: depositAmount, payCurrency, priceCurrency })
 
