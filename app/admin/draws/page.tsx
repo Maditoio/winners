@@ -596,5 +596,6 @@ export default function DrawsAdminPage() {
         )}
       </div>
     </div>
+  </div>
   )
 }
