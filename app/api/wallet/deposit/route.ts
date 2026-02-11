@@ -177,7 +177,13 @@ export async function POST(req: Request) {
 
       if (existingTx) {
         if (isPayable) {
-          const previousAmount = Number(existingTx.amount)
+          const previousAmountRaw = Number(existingTx.amount)
+          // Ignore placeholder intent amount when it is larger than actual received amount.
+          const shouldIgnorePrevious =
+            existingTx.status === 'PENDING'
+            && Number.isFinite(previousAmountRaw)
+            && previousAmountRaw > amountFromPayload
+          const previousAmount = shouldIgnorePrevious ? 0 : previousAmountRaw
           const creditDelta = amountFromPayload - (Number.isFinite(previousAmount) ? previousAmount : 0)
           
           console.log('[DEPOSIT WEBHOOK] Update existing transaction:', {
