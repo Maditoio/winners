@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { verifyNowPaymentsSignature } from '@/lib/nowpayments'
 
-const MINIMUM_DEPOSIT = 3
+const MINIMUM_DEPOSIT = 10
 const COMPLETED_STATUSES = new Set(['confirmed', 'finished'])
 const PARTIAL_STATUSES = new Set(['partially_paid'])
 const FAILED_STATUSES = new Set(['failed', 'refunded', 'expired'])

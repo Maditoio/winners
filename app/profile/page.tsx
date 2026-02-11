@@ -327,11 +327,11 @@ const handleUpdateWithdrawalAddress = async (e: React.FormEvent) => {
                 <input
                   type="number"
                   step="0.01"
-                  min="3"
+                  min="10"
                   value={depositAmount}
                   onChange={(e) => setDepositAmount(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
-                  placeholder="Enter amount (min 3 USDT)"
+                  placeholder="Enter amount (min 10 USDT)"
                 />
                 <button
                   type="button"
@@ -354,49 +354,49 @@ const handleUpdateWithdrawalAddress = async (e: React.FormEvent) => {
               </div>
             </div>
 
-            <div className="border-t border-gray-200 pt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Your Crypto Deposit Address
-              </label>
-              <div className="flex gap-2 items-center">
-                <input
-                  type="text"
-                  value={displayDepositAddress}
-                  readOnly
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
-                  placeholder="Generate a deposit address to start"
-                />
-                {qrCodeUrl && !isPendingAddress && (
+            {!isPendingAddress && (
+              <div className="border-t border-gray-200 pt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Your Crypto Deposit Address
+                </label>
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    value={displayDepositAddress}
+                    readOnly
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
+                  />
+                  {qrCodeUrl && (
+                    <button
+                      onClick={() => setIsQrModalOpen(true)}
+                      className="group relative shrink-0"
+                      type="button"
+                      title="Click to view QR code"
+                    >
+                      <img 
+                        src={qrCodeUrl} 
+                        alt="QR Code" 
+                        className="w-10 h-10 border-2 border-purple-200 rounded-lg hover:border-purple-400 transition-colors cursor-pointer" 
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded-lg transition-colors flex items-center justify-center">
+                        <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">🔍</span>
+                      </div>
+                    </button>
+                  )}
                   <button
-                    onClick={() => setIsQrModalOpen(true)}
-                    className="group relative shrink-0"
-                    type="button"
-                    title="Click to view QR code"
+                    onClick={() => copyToClipboard(activeDepositAddress, 'crypto')}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 shrink-0"
                   >
-                    <img 
-                      src={qrCodeUrl} 
-                      alt="QR Code" 
-                      className="w-10 h-10 border-2 border-purple-200 rounded-lg hover:border-purple-400 transition-colors cursor-pointer" 
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded-lg transition-colors flex items-center justify-center">
-                      <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">🔍</span>
-                    </div>
+                    {copiedCrypto ? '✓' : 'Copy'}
                   </button>
-                )}
-                <button
-                  onClick={() => copyToClipboard(activeDepositAddress, 'crypto')}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 shrink-0 disabled:opacity-50"
-                  disabled={isPendingAddress}
-                >
-                  {copiedCrypto ? '✓' : 'Copy'}
-                </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">USDT on Polygon network</p>
               </div>
-              <p className="text-xs text-gray-500 mt-1">Generate an address and send USDT on Polygon</p>
-            </div>
+            )}
 
             <div className="border-t border-gray-200 pt-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                🏦 Your Withdrawal Address (Where you receive funds)
+                🏦 USDT (Polygon / MATIC network) Withdrawal Address
               </label>
               
               {profile.wallet?.withdrawalAddress ? (
@@ -430,7 +430,7 @@ const handleUpdateWithdrawalAddress = async (e: React.FormEvent) => {
                     type="text"
                     value={withdrawalAddress}
                     onChange={(e) => setWithdrawalAddress(e.target.value)}
-                    placeholder="Enter your USDT wallet address for withdrawals"
+                    placeholder="Enter your USDT (Polygon/MATIC) wallet address"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 font-mono text-sm"
                     required
                   />

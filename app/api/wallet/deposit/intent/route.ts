@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { createNowPaymentsPayment } from '@/lib/nowpayments'
 
-const MINIMUM_DEPOSIT = 3
+const MINIMUM_DEPOSIT = 10
 
 export async function POST(req: Request) {
   console.log('[DEPOSIT INTENT] ========== NEW REQUEST ==========')

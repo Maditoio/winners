@@ -241,7 +241,7 @@ export default function WithdrawalPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Withdrawal Address (USDT)
+                  USDT (Polygon / MATIC network) Withdrawal Address
                 </label>
                 {profile.wallet.withdrawalAddress ? (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-3">
