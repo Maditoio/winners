@@ -154,7 +154,8 @@ export async function POST(req: Request) {
     const isCompleted = COMPLETED_STATUSES.has(paymentStatus)
     const isPartial = PARTIAL_STATUSES.has(paymentStatus)
     const isFailed = FAILED_STATUSES.has(paymentStatus)
-    const isBelowMinimum = amountFromPayload < MINIMUM_DEPOSIT
+    const requestedAmount = parseAmount(payload.price_amount) ?? amountFromPayload
+    const isBelowMinimum = requestedAmount < MINIMUM_DEPOSIT
     const isPayable = isCompleted || isPartial
 
     const result = await prisma.$transaction(async (tx) => {
