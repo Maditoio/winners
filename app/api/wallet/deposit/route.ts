@@ -6,6 +6,7 @@ import { verifyNowPaymentsSignature } from '@/lib/nowpayments'
 
 const MINIMUM_DEPOSIT = 3
 const COMPLETED_STATUSES = new Set(['confirmed', 'finished'])
+const PARTIAL_STATUSES = new Set(['partially_paid'])
 const FAILED_STATUSES = new Set(['failed', 'refunded', 'expired'])
 
 const normalizeStatus = (status?: string) =>
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
     console.log('[DEPOSIT WEBHOOK] Payload parsed, order_id:', payload.order_id)
 
     const isValidSignature = verifyNowPaymentsSignature(
-      payload,
+      rawBody,
       signature,
       ipnSecret
     )
@@ -142,8 +143,10 @@ export async function POST(req: Request) {
     })
 
     const isCompleted = COMPLETED_STATUSES.has(paymentStatus)
+    const isPartial = PARTIAL_STATUSES.has(paymentStatus)
     const isFailed = FAILED_STATUSES.has(paymentStatus)
     const isBelowMinimum = amountFromPayload < MINIMUM_DEPOSIT
+    const isPayable = isCompleted || isPartial
 
     const result = await prisma.$transaction(async (tx) => {
       const existingTx = await tx.transaction.findUnique({
@@ -163,28 +166,30 @@ export async function POST(req: Request) {
       })
 
       if (existingTx) {
-        if (isCompleted) {
+        if (isPayable) {
+          const previousAmount = Number(existingTx.amount)
+          const creditDelta = amountFromPayload - (Number.isFinite(previousAmount) ? previousAmount : 0)
           const updatedTx = await tx.transaction.update({
             where: { id: existingTx.id },
             data: {
-              status: isBelowMinimum ? 'FAILED' : 'COMPLETED',
+              status: isCompleted ? (isBelowMinimum ? 'FAILED' : 'COMPLETED') : 'PENDING',
               amount: amountFromPayload,
               toAddress: payAddress || existingTx.toAddress
             }
           })
 
-          if (!isBelowMinimum) {
+          if (!isBelowMinimum && creditDelta > 0) {
             await tx.wallet.update({
               where: { id: wallet.id },
               data: {
                 balance: {
-                  increment: amountFromPayload
+                  increment: creditDelta
                 }
               }
             })
           }
 
-          if (!isBelowMinimum && user?.referredBy && priorConfirmedDeposits === 0) {
+          if (isCompleted && !isBelowMinimum && user?.referredBy && priorConfirmedDeposits === 0) {
             const alreadyCredited = await tx.transaction.findFirst({
               where: {
                 userId: user.referredBy,
@@ -247,7 +252,7 @@ export async function POST(req: Request) {
         }
       })
 
-      if (isCompleted && !isBelowMinimum) {
+      if (isPayable && !isBelowMinimum) {
         await tx.wallet.update({
           where: { id: wallet.id },
           data: {
@@ -257,7 +262,7 @@ export async function POST(req: Request) {
           }
         })
 
-        if (user?.referredBy && priorConfirmedDeposits === 0) {
+        if (isCompleted && user?.referredBy && priorConfirmedDeposits === 0) {
           const alreadyCredited = await tx.transaction.findFirst({
             where: {
               userId: user.referredBy,

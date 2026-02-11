@@ -13,17 +13,16 @@ export type NowPaymentsCreatePaymentResponse = {
 }
 
 export function verifyNowPaymentsSignature(
-  payload: Record<string, unknown>,
+  rawBody: string,
   signature: string,
   secret: string
 ): boolean {
-  const sortedPayload = JSON.stringify(payload, Object.keys(payload).sort())
   const hmac = crypto.createHmac('sha512', secret.trim())
-  hmac.update(sortedPayload)
+  hmac.update(rawBody)
   const digest = hmac.digest('hex')
 
   const digestBuffer = Buffer.from(digest, 'utf8')
-  const signatureBuffer = Buffer.from(signature, 'utf8')
+  const signatureBuffer = Buffer.from(signature.trim(), 'utf8')
 
   if (digestBuffer.length !== signatureBuffer.length) {
     return false
