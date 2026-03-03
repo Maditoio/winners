@@ -9,6 +9,9 @@ interface Ticket {
   id: string
   ticketNumber: string
   purchasedAt: string
+  isWinning: boolean
+  winningPosition: number | null
+  winningPrizeAmount: string | null
   draw: {
     id: string
     title: string
@@ -131,9 +134,31 @@ export default function TicketsPage() {
                       <div className="text-sm font-semibold text-gray-800 mb-2">Your Tickets</div>
                       <div className="flex flex-wrap gap-2">
                         {group.map((ticket) => (
-                          <div key={ticket.id} className="px-3 py-2 bg-gray-50 border border-gray-200 rounded">
-                            <div className="text-xs text-gray-500">Ticket</div>
-                            <div className="font-mono text-sm text-gray-800">{ticket.ticketNumber}</div>
+                          <div
+                            key={ticket.id}
+                            className={`px-3 py-2 border rounded ${
+                              ticket.isWinning
+                                ? 'bg-green-50 border-green-300'
+                                : 'bg-gray-50 border-gray-200'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="text-xs text-gray-500">Ticket</div>
+                              {ticket.isWinning && (
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                                  WINNER
+                                </span>
+                              )}
+                            </div>
+                            <div className={`font-mono text-sm ${ticket.isWinning ? 'text-green-800' : 'text-gray-800'}`}>
+                              {ticket.ticketNumber}
+                            </div>
+                            {ticket.isWinning && (
+                              <div className="text-xs text-green-700 mt-1">
+                                Position #{ticket.winningPosition}
+                                {ticket.winningPrizeAmount ? ` · ${ticket.winningPrizeAmount} USDT` : ''}
+                              </div>
+                            )}
                             <div className="text-xs text-gray-500 mt-1">
                               {new Date(ticket.purchasedAt).toLocaleString()}
                             </div>

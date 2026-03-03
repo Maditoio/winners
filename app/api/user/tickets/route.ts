@@ -31,11 +31,35 @@ export async function GET() {
       orderBy: { purchasedAt: 'desc' }
     })
 
+    const ticketNumbers = entries.map((entry) => entry.ticketNumber)
+
+    const winners = ticketNumbers.length
+      ? await prisma.winner.findMany({
+          where: {
+            ticketNumber: {
+              in: ticketNumbers
+            }
+          },
+          select: {
+            ticketNumber: true,
+            position: true,
+            prizeAmount: true
+          }
+        })
+      : []
+
+    const winnerByTicket = new Map(
+      winners.map((winner) => [winner.ticketNumber, winner])
+    )
+
     return NextResponse.json(
       entries.map((entry) => ({
         id: entry.id,
         ticketNumber: entry.ticketNumber,
         purchasedAt: entry.purchasedAt.toISOString(),
+        isWinning: winnerByTicket.has(entry.ticketNumber),
+        winningPosition: winnerByTicket.get(entry.ticketNumber)?.position ?? null,
+        winningPrizeAmount: winnerByTicket.get(entry.ticketNumber)?.prizeAmount?.toString() ?? null,
         draw: {
           ...entry.draw,
           entryPrice: entry.draw.entryPrice.toString(),

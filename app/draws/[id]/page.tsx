@@ -26,8 +26,11 @@ interface Draw {
   }>
 }
 
-interface UserTickets {
-  [drawId: string]: string[]
+interface UserTicket {
+  id: string
+  ticketNumber: string
+  isWinning: boolean
+  winningPosition: number | null
 }
 
 export default function DrawDetailPage() {
@@ -42,7 +45,7 @@ export default function DrawDetailPage() {
   const [isEntering, setIsEntering] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  const [userTickets, setUserTickets] = useState<string[]>([])
+  const [userTickets, setUserTickets] = useState<UserTicket[]>([])
 
   const fetchDraw = useCallback(async () => {
     try {
@@ -61,8 +64,24 @@ export default function DrawDetailPage() {
     try {
       const res = await fetch('/api/user/tickets')
       if (res.ok) {
-        const data: UserTickets = await res.json()
-        setUserTickets(data[drawId] || [])
+        const data: Array<{
+          id: string
+          ticketNumber: string
+          isWinning: boolean
+          winningPosition: number | null
+          draw: { id: string }
+        }> = await res.json()
+
+        setUserTickets(
+          data
+            .filter((ticket) => ticket.draw.id === drawId)
+            .map((ticket) => ({
+              id: ticket.id,
+              ticketNumber: ticket.ticketNumber,
+              isWinning: ticket.isWinning,
+              winningPosition: ticket.winningPosition
+            }))
+        )
       }
     } catch {
       console.error('Failed to fetch tickets')
@@ -349,8 +368,12 @@ export default function DrawDetailPage() {
                 <h4 className="font-semibold text-green-900 mb-2">✅ Your Tickets</h4>
                 <div className="space-y-1 max-h-32 overflow-y-auto">
                   {userTickets.map((ticket) => (
-                    <div key={ticket} className="text-xs font-mono bg-white rounded px-2 py-1 text-green-700">
-                      {ticket}
+                    <div
+                      key={ticket.id}
+                      className={`text-xs font-mono bg-white rounded px-2 py-1 border ${ticket.isWinning ? 'text-green-800 border-green-300' : 'text-green-700 border-green-100'}`}
+                    >
+                      {ticket.ticketNumber}
+                      {ticket.isWinning ? ` · WINNER #${ticket.winningPosition}` : ''}
                     </div>
                   ))}
                 </div>
